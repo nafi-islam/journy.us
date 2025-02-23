@@ -6,7 +6,7 @@
 	let popupSettings: PopupSettings = {
 		event: 'focus-click',
 		target: 'popupAutocomplete',
-		placement: 'bottom'
+		placement: 'top'
 	};
 
 	let inputPopupDemo: string = '';
@@ -31,15 +31,14 @@
 		type="search"
 		name="autocomplete-search"
 		bind:value={inputPopupDemo}
-		placeholder="Search..."
+		placeholder="Enter a state..."
 		use:popup={popupSettings}
 	/>
 
 	<!-- Autocomplete Dropdown -->
-	<!-- TODO: not placing on the bottom, probably css in main page -->
 	<div
 		data-popup="popupAutocomplete"
-		class="card w-full max-w-sm max-h-48 p-4 overflow-y-auto"
+		class="card w-full max-w-sm max-h-48 p-4 overflow-y-auto absolute left-0 top-full z-50 rounded-md"
 		tabindex="-1"
 	>
 		<Autocomplete bind:input={inputPopupDemo} options={states} on:selection={onPopupDemoSelect} />
