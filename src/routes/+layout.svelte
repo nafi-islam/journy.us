@@ -12,7 +12,7 @@
 	function modalToggle() {
 		const modal: ModalSettings = {
 			type: 'alert',
-			title: 'Help & Instructions',
+			title: 'welcome to journy !',
 			body: 'This is an example modal with game instructions.',
 			image: 'https://i.imgur.com/WOgTG96.gif'
 		};
@@ -52,7 +52,7 @@
 
 				<!-- Help Button -->
 				<button
-					class="btn btn-sm variant-ghost-surface flex items-center justify-center w-10 h-10 p-2"
+					class="btn-icon btn-sm variant-ghost-surface flex items-center justify-center w-10 h-10 p-2"
 					on:click={modalToggle}
 				>
 					<QuestionMark class="w-5 h-5" />
