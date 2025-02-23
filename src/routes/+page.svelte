@@ -1,7 +1,8 @@
 <script>
 	import Prompt from '$lib/components/Prompt.svelte';
 	import Map from '$lib/components/Map.svelte';
-	import Autocomplete from '$lib/components/Input.svelte';
+	import GuessInput from '$lib/components/GuessInput.svelte';
+	import Guesses from '$lib/components/Guesses.svelte';
 </script>
 
 <div
@@ -17,6 +18,9 @@
 		<Map />
 
 		<!-- Autocomplete -->
-		<Autocomplete />
+		<GuessInput />
+
+		<!-- Guesses -->
+		<Guesses />
 	</div>
 </div>

@@ -2,6 +2,7 @@
 	import { Autocomplete, popup } from '@skeletonlabs/skeleton';
 	import type { AutocompleteOption, PopupSettings } from '@skeletonlabs/skeleton';
 	import { statesGraph } from '../statesGraph';
+	import { guessedStates } from '../stores';
 
 	let popupSettings: PopupSettings = {
 		event: 'focus-click',
@@ -15,6 +16,19 @@
 		inputPopupDemo = event.detail.label;
 	}
 
+	// Added submitGuess
+	function submitGuess() {
+		if (inputPopupDemo.trim() !== '') {
+			guessedStates.update((guesses) => {
+				if (!guesses.includes(inputPopupDemo)) {
+					return [...guesses, inputPopupDemo];
+				}
+				return guesses;
+			});
+			inputPopupDemo = ''; // Clear input after guessing
+		}
+	}
+
 	const states: AutocompleteOption<string, string>[] = Object.keys(statesGraph).map((state) => ({
 		label: state,
 		value: state
@@ -23,22 +37,33 @@
 </script>
 
 <div class="flex flex-col space-y-4 w-full max-w-md">
-	<h4 class="h4 text-center">take a guess!</h4>
+	<!-- Guess Input and Button -->
+	<div class="flex w-full space-x-2">
+		<!-- Guess Input Field -->
+		<!-- Added focus: ring-primary-500 focus:border-primary-500 -->
+		<input
+			class="input autocomplete w-full p-3 border rounded-md shadow-md focus:ring-primary-500 focus:border-primary-500"
+			type="search"
+			name="autocomplete-search"
+			bind:value={inputPopupDemo}
+			placeholder="Enter a state..."
+			use:popup={popupSettings}
+		/>
 
-	<!-- Guess Input Field -->
-	<input
-		class="input autocomplete w-full p-3 border rounded-md shadow-md"
-		type="search"
-		name="autocomplete-search"
-		bind:value={inputPopupDemo}
-		placeholder="Enter a state..."
-		use:popup={popupSettings}
-	/>
+		<!-- Guess Button -->
+		<button
+			class="btn bg-primary-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-primary-800"
+			on:click={submitGuess}
+		>
+			Guess
+		</button>
+	</div>
 
 	<!-- Autocomplete Dropdown -->
+	<!-- Added border border-surface-200 shadow-lg -->
 	<div
 		data-popup="popupAutocomplete"
-		class="card w-full max-w-sm max-h-48 p-4 overflow-y-auto absolute left-0 top-full z-50 rounded-md"
+		class="card w-full max-w-sm max-h-48 p-4 overflow-y-auto absolute left-0 top-full z-50 rounded-md bg-surface-50 border border-surface-200 shadow-lg"
 		tabindex="-1"
 	>
 		<Autocomplete bind:input={inputPopupDemo} options={states} on:selection={onPopupDemoSelect} />
