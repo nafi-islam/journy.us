@@ -1,0 +1,128 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { geoAlbersUsa, geoPath } from 'd3-geo';
+	import { json } from 'd3-fetch';
+	import { feature } from 'topojson-client';
+	import type { FeatureCollection, Feature, Geometry } from 'geojson';
+	import { startState, targetState } from '../stores';
+
+	/*
+	TODO
+		- Make the map more scalable (for mobile and bigger screens)
+		- To complete, look into Tailwind and D3 styling techniques
+		- viewBox, w-full h-auto, dynamic projection, etc.
+	*/
+
+	const geoUrl = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json';
+
+	type StateFeature = Feature<Geometry, { name: string }>;
+	type StateCollection = FeatureCollection<Geometry, { name: string }>;
+
+	let states: StateFeature[] = [];
+	let guessedStates: string[] = [];
+
+	// Store Subscription
+	let start: string;
+	let target: string;
+
+	startState.subscribe((value) => (start = value));
+	targetState.subscribe((value) => (target = value));
+
+	// Define projection & path
+	const projection = geoAlbersUsa().scale(1250).translate([480, 300]);
+	const pathGenerator = geoPath(projection);
+
+	// Fetch the map data when component mounts
+	onMount(async () => {
+		try {
+			const data = (await json(geoUrl)) as any;
+			const stateCollection = feature(data, data.objects.states) as unknown as StateCollection;
+			states = stateCollection.features;
+			console.log('Loaded states:', states);
+		} catch (error) {
+			console.error('Error loading map data:', error);
+		}
+	});
+
+	// Set state colors, use Skeleton Vintage Color Palette
+	const getFillColor = (stateName: string): string => {
+		const style = getComputedStyle(document.documentElement);
+
+		if (stateName === start)
+			return `rgb(${style.getPropertyValue('--color-primary-500').trim() || '234, 134, 26'})`;
+		if (stateName === target)
+			return `rgb(${style.getPropertyValue('--color-secondary-500').trim() || '151, 206, 165'})`;
+		if (guessedStates.includes(stateName))
+			return `rgb(${style.getPropertyValue('--color-tertiary-500').trim() || '6, 182, 212'})`;
+		return `rgb(${style.getPropertyValue('--color-surface-300').trim() || '129, 124, 119'})`;
+	};
+</script>
+
+<!-- Render the map -->
+<div class="map-container">
+	<div class="map-glow"></div>
+	<!-- Glowing effect -->
+	<svg width="550" height="350" viewBox="0 0 960 600">
+		<g>
+			{#each states as state}
+				<path d={pathGenerator(state)} fill={getFillColor(state.properties.name)} stroke="#FFF" />
+			{/each}
+		</g>
+	</svg>
+</div>
+
+<style lang="postcss">
+	.map-container {
+		position: relative;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	/* The glow effect */
+	.map-glow {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 300px; /* Adjust size */
+		height: 300px;
+		border-radius: 50%;
+		filter: blur(50px);
+		z-index: -1;
+		opacity: 0.6;
+		animation:
+			pulse 5s cubic-bezier(0, 0, 0, 0.5) infinite,
+			glow 5s linear infinite;
+	}
+
+	/* Glow color transitions */
+	@keyframes glow {
+		0% {
+			background-color: rgba(234, 134, 26, 0.5); /* Primary */
+		}
+		33% {
+			background-color: rgba(151, 206, 165, 0.5); /* Secondary */
+		}
+		66% {
+			background-color: rgba(6, 182, 212, 0.5); /* Tertiary */
+		}
+		100% {
+			background-color: rgba(234, 134, 26, 0.5);
+		}
+	}
+
+	/* Pulse effect */
+	@keyframes pulse {
+		50% {
+			transform: translate(-50%, -50%) scale(1.5);
+		}
+	}
+
+	svg {
+		position: relative;
+		z-index: 1;
+		display: block;
+		margin: auto;
+	}
+</style>
