@@ -15,17 +15,33 @@
 		inputPopupDemo = event.detail.label;
 	}
 
-	const states = Object.keys(statesGraph).map((state) => ({ label: state, value: state }));
+	const states: AutocompleteOption<string, string>[] = Object.keys(statesGraph).map((state) => ({
+		label: state,
+		value: state
+	}));
+	console.log('Autocomplete States:', states);
 </script>
 
-<input
-	class="input autocomplete w-full p-3 border rounded-md shadow-md"
-	type="search"
-	name="autocomplete-search"
-	bind:value={inputPopupDemo}
-	placeholder="Search..."
-	use:popup={popupSettings}
-/>
-<div data-popup="popupAutocomplete">
-	<Autocomplete bind:input={inputPopupDemo} options={states} on:selection={onPopupDemoSelect} />
+<div class="flex flex-col space-y-4 w-full max-w-md">
+	<h4 class="h4 text-center">take a guess!</h4>
+
+	<!-- Guess Input Field -->
+	<input
+		class="input autocomplete w-full p-3 border rounded-md shadow-md"
+		type="search"
+		name="autocomplete-search"
+		bind:value={inputPopupDemo}
+		placeholder="Search..."
+		use:popup={popupSettings}
+	/>
+
+	<!-- Autocomplete Dropdown -->
+	<!-- TODO: not placing on the bottom, probably css in main page -->
+	<div
+		data-popup="popupAutocomplete"
+		class="card w-full max-w-sm max-h-48 p-4 overflow-y-auto"
+		tabindex="-1"
+	>
+		<Autocomplete bind:input={inputPopupDemo} options={states} on:selection={onPopupDemoSelect} />
+	</div>
 </div>

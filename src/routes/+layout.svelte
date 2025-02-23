@@ -3,10 +3,17 @@
 	import { AppShell, AppBar, Modal } from '@skeletonlabs/skeleton';
 	import { getModalStore, initializeStores, LightSwitch } from '@skeletonlabs/skeleton';
 	import type { ModalSettings } from '@skeletonlabs/skeleton';
+
+	import { storePopup } from '@skeletonlabs/skeleton';
+	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
+
 	import { Map2 } from 'tabler-icons-svelte';
 	import { QuestionMark } from 'tabler-icons-svelte';
 
 	initializeStores();
+
+	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
+
 	const modalStore = getModalStore();
 
 	function modalToggle() {

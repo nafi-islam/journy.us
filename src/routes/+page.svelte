@@ -1,6 +1,8 @@
 <script>
 	import Prompt from '$lib/components/Prompt.svelte';
 	import Map from '$lib/components/Map.svelte';
+	import Guesses from '$lib/components/Guesses.svelte';
+	import Autocomplete from '$lib/components/Autocomplete.svelte';
 </script>
 
 <div class="container h-full mx-auto flex justify-center items-center">
@@ -12,5 +14,8 @@
 
 		<!-- Map -->
 		<Map />
+
+		<!-- Autocomplete -->
+		<Autocomplete />
 	</div>
 </div>
