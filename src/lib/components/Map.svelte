@@ -4,7 +4,7 @@
 	import { json } from 'd3-fetch';
 	import { feature } from 'topojson-client';
 	import type { FeatureCollection, Feature, Geometry } from 'geojson';
-	import { startState, targetState } from '../stores';
+	import { startState, targetState, guessedStates } from '../stores';
 
 	/*
 	TODO
@@ -19,11 +19,16 @@
 	type StateCollection = FeatureCollection<Geometry, { name: string }>;
 
 	let states: StateFeature[] = [];
-	let guessedStates: string[] = [];
+	// let guessedStates: string[] = [];
 
 	// Store Subscription
 	let start: string;
 	let target: string;
+
+	let guessed: string[] = [];
+	// guessedStates.subscribe((value) => (guessed = value));
+
+	$: guessed = $guessedStates;
 
 	startState.subscribe((value) => (start = value));
 	targetState.subscribe((value) => (target = value));
@@ -45,17 +50,20 @@
 	});
 
 	// Set state colors, use Skeleton Vintage Color Palette
-	const getFillColor = (stateName: string): string => {
+	$: getFillColor = (stateName: string): string => {
 		const style = getComputedStyle(document.documentElement);
 
 		if (stateName === start)
 			return `rgb(${style.getPropertyValue('--color-primary-500').trim() || '234, 134, 26'})`;
 		if (stateName === target)
 			return `rgb(${style.getPropertyValue('--color-secondary-500').trim() || '151, 206, 165'})`;
-		if (guessedStates.includes(stateName))
+		if (guessed.includes(stateName))
 			return `rgb(${style.getPropertyValue('--color-tertiary-500').trim() || '6, 182, 212'})`;
 		return `rgb(${style.getPropertyValue('--color-surface-300').trim() || '129, 124, 119'})`;
 	};
+
+	$: console.log('Updated guessed states:', $guessedStates);
+	$: console.log('Guessed states updated in store:', $guessedStates);
 </script>
 
 <!-- Render the map -->

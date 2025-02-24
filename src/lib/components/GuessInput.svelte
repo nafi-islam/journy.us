@@ -21,12 +21,14 @@
 		if (inputPopupDemo.trim() !== '') {
 			guessedStates.update((guesses) => {
 				if (!guesses.includes(inputPopupDemo)) {
-					return [...guesses, inputPopupDemo];
+					return [...guesses, inputPopupDemo]; // Reactivity
 				}
 				return guesses;
 			});
 			inputPopupDemo = ''; // Clear input after guessing
 		}
+
+		console.log('Guessed States:', $guessedStates);
 	}
 
 	const states: AutocompleteOption<string, string>[] = Object.keys(statesGraph).map((state) => ({
