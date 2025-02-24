@@ -5,7 +5,6 @@ export interface StatesGraph {
 // prettier-ignore
 export const statesGraph: StatesGraph = {
     Alabama: ["Tennessee", "Georgia", "Florida", "Mississippi"],
-    Alaska: [],
     Arizona: ["California", "Nevada", "Utah", "Colorado", "New Mexico"],
     Arkansas: [
       "Missouri",
@@ -35,7 +34,6 @@ export const statesGraph: StatesGraph = {
       "Florida",
       "Alabama",
     ],
-    Hawaii: [],
     Idaho: ["Montana", "Wyoming", "Utah", "Nevada", "Oregon", "Washington"],
     Illinois: ["Wisconsin", "Iowa", "Missouri", "Kentucky", "Indiana"],
     Indiana: ["Michigan", "Ohio", "Kentucky", "Illinois"],
