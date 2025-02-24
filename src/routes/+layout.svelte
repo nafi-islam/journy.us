@@ -24,7 +24,7 @@
 			image: 'https://i.imgur.com/WOgTG96.gif'
 		};
 		modalStore.trigger(modal);
-		console.log('modal clicked');
+		// console.log('modal clicked');
 	}
 </script>
 

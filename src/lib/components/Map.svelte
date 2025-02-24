@@ -43,9 +43,9 @@
 			const data = (await json(geoUrl)) as any;
 			const stateCollection = feature(data, data.objects.states) as unknown as StateCollection;
 			states = stateCollection.features;
-			console.log('Loaded states:', states);
+			// console.log('Loaded states:', states);
 		} catch (error) {
-			console.error('Error loading map data:', error);
+			// console.error('Error loading map data:', error);
 		}
 	});
 
@@ -62,8 +62,8 @@
 		return `rgb(${style.getPropertyValue('--color-surface-300').trim() || '129, 124, 119'})`;
 	};
 
-	$: console.log('Updated guessed states:', $guessedStates);
-	$: console.log('Guessed states updated in store:', $guessedStates);
+	// $: console.log('Updated guessed states:', $guessedStates);
+	// $: console.log('Guessed states updated in store:', $guessedStates);
 </script>
 
 <!-- Render the map -->

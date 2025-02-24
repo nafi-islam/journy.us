@@ -3,6 +3,7 @@
 	import Map from '$lib/components/Map.svelte';
 	import GuessInput from '$lib/components/GuessInput.svelte';
 	import Guesses from '$lib/components/Guesses.svelte';
+	import GameStatus from '$lib/components/GameStatus.svelte';
 </script>
 
 <div
@@ -22,5 +23,8 @@
 
 		<!-- Guesses -->
 		<Guesses />
+
+		<!-- Guesses -->
+		<GameStatus />
 	</div>
 </div>

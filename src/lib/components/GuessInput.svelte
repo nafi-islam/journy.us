@@ -28,14 +28,14 @@
 			inputPopupDemo = ''; // Clear input after guessing
 		}
 
-		console.log('Guessed States:', $guessedStates);
+		// console.log('Guessed States:', $guessedStates);
 	}
 
 	const states: AutocompleteOption<string, string>[] = Object.keys(statesGraph).map((state) => ({
 		label: state,
 		value: state
 	}));
-	console.log('Autocomplete States:', states);
+	// console.log('Autocomplete States:', states);
 </script>
 
 <div class="flex flex-col space-y-4 w-full max-w-md">

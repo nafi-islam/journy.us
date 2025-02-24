@@ -5,15 +5,15 @@
 
 	const states = Object.keys(statesGraph);
 
-	console.log('states', states);
+	// console.log('states', states);
 
 	onMount(() => {
 		startState.set(states[Math.floor(Math.random() * states.length)]);
 		targetState.set(states[Math.floor(Math.random() * states.length)]);
 	});
 
-	console.log('startState', startState);
-	console.log('targetState', targetState);
+	// console.log('startState', startState);
+	// console.log('targetState', targetState);
 </script>
 
 <div class="flex flex-col items-center space-y-4 p-2">
