@@ -23,18 +23,20 @@
 	}
 
 	// Added submitGuess
+	import { formatStateName } from '../utils';
+
 	function submitGuess() {
 		if (inputPopupDemo.trim() !== '') {
+			const formattedGuess = formatStateName(inputPopupDemo);
+
 			guessedStates.update((guesses) => {
-				if (!guesses.includes(inputPopupDemo)) {
-					return [...guesses, inputPopupDemo]; // Reactivity
+				if (!guesses.includes(formattedGuess)) {
+					return [...guesses, formattedGuess]; // Reactivity
 				}
 				return guesses;
 			});
 			inputPopupDemo = ''; // Clear input after guessing
 		}
-
-		// console.log('Guessed States:', $guessedStates);
 	}
 
 	// Filtered list: remove startState, targetState, and guessedStates

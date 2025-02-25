@@ -9,18 +9,14 @@ import {
 	initialGuessesRemaining
 } from './stores';
 
-/* 
-    TODO: implement sub optimal win condition
-        - optimal: shortest path guess & shortest path guess length (done)
-        - sub-optimal: any other path guess that connects within +3 guesses (done)
-        - lose: exceed max guesses (done)
-
-    NOTE:
-        - should optimal condition be shortestPath.length() so it's number based?
-        - then, sub-optimal condition is shortestPath.length() + 1 to shortestPath.length() + 3
-        - lastly, lose condition is > shortestPath.length() + 3
-        - this makes the game more dynamic since shortest path can be arbitrary
-*/
+// Function to clean the user input
+export function formatStateName(state: string): string {
+	return state
+		.trim()
+		.split(/\s+/) // Split by spaces
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
+		.join(' '); // Rejoin into a proper state name
+}
 
 // Function to find the shortest path using BFS
 export function findShortestPath(start: string, target: string): string[] | null {
@@ -67,7 +63,7 @@ function containsAllElements(arr1: string[], arr2: string[]): boolean {
 	return arr1.every((state) => arr2.includes(state));
 }
 
-// Function to check if the guessed path is a valid path from start to target
+// TODO (BREAKING): Function to check if the guessed path is a valid path from start to target
 // Note: guesses can be out of order but must be connected
 function isValidAlternativePath(guessed: string[], start: string, target: string): boolean {
 	if (guessed.length === 0) return false;
