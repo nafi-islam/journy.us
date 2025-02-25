@@ -2,7 +2,7 @@
 	import { Autocomplete, popup } from '@skeletonlabs/skeleton';
 	import type { AutocompleteOption, PopupSettings } from '@skeletonlabs/skeleton';
 	import { statesGraph } from '../statesGraph';
-	import { guessCount, guessedStates, guessesRemaining } from '../stores';
+	import { guessCount, guessedStates, guessesRemaining, startState } from '../stores';
 
 	let popupSettings: PopupSettings = {
 		event: 'focus-click',
@@ -31,10 +31,15 @@
 		// console.log('Guessed States:', $guessedStates);
 	}
 
-	const states: AutocompleteOption<string, string>[] = Object.keys(statesGraph).map((state) => ({
-		label: state,
-		value: state
-	}));
+	// Filtered list: remove startState, targetState, and guessedStates
+	$: filteredStates = Object.keys(statesGraph)
+		.filter(
+			(state) => state !== $startState && state !== $startState && !$guessedStates.includes(state)
+		)
+		.map((state) => ({
+			label: state,
+			value: state
+		}));
 	// console.log('Autocomplete States:', states);
 </script>
 
@@ -68,6 +73,10 @@
 		class="card w-full max-w-sm max-h-48 p-4 overflow-y-auto absolute left-0 top-full z-50 rounded-md bg-surface-50 border border-surface-200 shadow-lg"
 		tabindex="-1"
 	>
-		<Autocomplete bind:input={inputPopupDemo} options={states} on:selection={onPopupDemoSelect} />
+		<Autocomplete
+			bind:input={inputPopupDemo}
+			options={filteredStates}
+			on:selection={onPopupDemoSelect}
+		/>
 	</div>
 </div>
