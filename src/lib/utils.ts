@@ -1,6 +1,13 @@
 import { derived } from 'svelte/store';
 import { statesGraph } from './statesGraph';
-import { startState, targetState, guessedStates, guessesRemaining, guessCount } from './stores';
+import {
+	startState,
+	targetState,
+	guessedStates,
+	guessesRemaining,
+	guessCount,
+	initialGuessesRemaining
+} from './stores';
 
 /* 
     TODO: implement sub optimal win condition
@@ -105,9 +112,11 @@ export const gameStatus = derived(
 		const optimalGuesses = shortestPath.length - 2; // // -2 to exclude start and target
 		const maxGuesses = optimalGuesses + 3; // guess wiggle room
 		const currentGuessCount = $guessedStates.length;
+		const initialRemainingGuesses = maxGuesses; // used for prompt
 		const remainingGuesses = maxGuesses - currentGuessCount;
 
-		guessesRemaining.set(remainingGuesses);
+		initialGuessesRemaining.set(initialRemainingGuesses);
+		// guessesRemaining.set(remainingGuesses); // don't think I need to store this now that I have initialRemainingGuesses
 		guessCount.set(currentGuessCount);
 
 		// Check if guessed path is a valid path from start to target
