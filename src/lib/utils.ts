@@ -1,17 +1,18 @@
-import { writable, derived } from 'svelte/store';
+import { derived } from 'svelte/store';
 import { statesGraph } from './statesGraph';
 import { startState, targetState, guessedStates } from './stores';
 
 /* 
     TODO: implement sub optimal win condition
-        - optimal: shortest path guess (done)
-        - sub-optimal: any other path guess that connects within +3 guesses
+        - optimal: shortest path guess & shortest path guess length (done)
+        - sub-optimal: any other path guess that connects within +3 guesses (done)
         - lose: exceed max guesses (done)
 
     NOTE:
         - should optimal condition be shortestPath.length() so it's number based?
         - then, sub-optimal condition is shortestPath.length() + 1 to shortestPath.length() + 3
         - lastly, lose condition is > shortestPath.length() + 3
+        - this makes the game more dynamic since shortest path can be arbitrary
 */
 
 // Function to find the shortest path using BFS
@@ -59,6 +60,26 @@ function containsAllElements(arr1: string[], arr2: string[]): boolean {
 	return arr1.every((state) => arr2.includes(state));
 }
 
+// Function to check if the guessed path is a valid path from start to target
+// Note: guesses can be out of order but must be connected
+function isValidAlternativePath(guessed: string[], start: string, target: string): boolean {
+	if (guessed.length === 0) return false;
+	if (!statesGraph[start]?.includes(guessed[0])) return false; // First guess must connect to start
+
+	let currentState = start;
+
+	// Check adjacency between guessed states
+	for (let i = 0; i < guessed.length; i++) {
+		if (!statesGraph[currentState]?.includes(guessed[i])) {
+			return false; // If a guessed state is not adjacent, it's invalid
+		}
+		currentState = guessed[i];
+	}
+
+	// Last guess must connect to the target
+	return statesGraph[currentState]?.includes(target);
+}
+
 // Deriving game status dynamically
 export const gameStatus = derived(
 	[startState, targetState, guessedStates],
@@ -66,8 +87,13 @@ export const gameStatus = derived(
 		if (!$startState || !$targetState) return { status: 'waiting', message: '' };
 
 		const shortestPath = findShortestPath($startState, $targetState);
+
+		// Extract the in-between states in the shortest path
+		const intermediateStates = shortestPath ? shortestPath.slice(1, -1) : [];
+
+		// Won't happen after prompt bug fix
 		if (!shortestPath) {
-			console.error(`No valid path found from ${$startState} to ${$targetState}`); // won't happen after prompt fix
+			console.error(`No valid path found from ${$startState} to ${$targetState}`);
 			return { status: 'error', message: `No valid path from ${$startState} to ${$targetState}` };
 		}
 
@@ -76,34 +102,53 @@ export const gameStatus = derived(
 		);
 		console.log(`Guessed States: ${$guessedStates.join(' → ')}`);
 
-		const minSteps = shortestPath.length - 2; // -2 to exclude start and target
-		console.log('minSteps: ', minSteps);
-		const maxGuesses = minSteps + 1;
-		console.log('maxGuesses: ', maxGuesses);
-		const guessesRemaining = maxGuesses - $guessedStates.length;
+		const optimalGuesses = shortestPath.length - 2; // // -2 to exclude start and target
+		const maxGuesses = optimalGuesses + 3; // guess wiggle room
+		const guessCount = $guessedStates.length;
+		const guessesRemaining = maxGuesses - guessCount;
 
-		// Extract the in-between states in the shortest path
-		const intermediateStates = shortestPath.slice(1, -1); // Remove start and target
+		// Check if guessed path is a valid path from start to target
+		const isValidPath = isValidAlternativePath($guessedStates, $startState, $targetState);
 
-		// Check if all in-between states are guessed, regardless of order
-		const isShortestPath = containsAllElements(intermediateStates, $guessedStates);
-
-		// Win condition: all in-between states must be guessed, in any order
-		if (isShortestPath) {
+		// Win Condition #1 (optimal): findShortestPath generated shortest path
+		if (intermediateStates.length > 0 && containsAllElements(intermediateStates, $guessedStates)) {
+			console.log(`Optimal win triggered`);
 			return {
 				status: 'win',
-				message: `Win Triggered: Condition - Found optimal path. Optimal path: ${shortestPath.join(' → ')}`
+				message: `Win Triggered: Condition - Found BFS optimal path. Optimal path: ${shortestPath.join(' → ')}`
 			};
 		}
 
-		// Lose condition: if there are no guesses left, trigger loss immediately
-		if (guessesRemaining === 0) {
+		// Win Condition #2 (optimal): Same length as findShortestPath generated path
+		// prettier-ignore
+		if (isValidPath && (guessCount === optimalGuesses)) {
+			console.log(`Optimal win triggered`);
+			return {
+				status: 'win',
+				message: `Win Triggered: Condition - Found another optimal path. Optimal path: ${shortestPath.join(' → ')}`
+			};
+		}
+
+		// Win Condition #3 (sub-optimal): check alternative valid paths
+		// prettier-ignore
+		if (isValidPath && ((guessCount > optimalGuesses) && (guessCount <= maxGuesses))) {
+			console.log(`Sub-win triggered`);
+			return {
+				status: 'sub-win',
+				message: `Win Triggered: Condition - Found sub optimal path. Optimal path: ${shortestPath.join(' → ')}`
+			};
+		}
+
+		// Lose Condition: If guesses exceed maxGuesses
+		if (guessCount === maxGuesses) {
+			console.log(`Loss triggered`);
 			return {
 				status: 'lose',
 				message: `Loss Triggered: Condition - No guesses remaining. Optimal path: ${shortestPath.join(' → ')}`
 			};
 		}
 
+		// Continue
 		return {
 			status: 'playing',
 			message: `Keep guessing! ${guessesRemaining} guesses left.`
