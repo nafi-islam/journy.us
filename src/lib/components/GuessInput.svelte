@@ -2,7 +2,7 @@
 	import { Autocomplete, popup } from '@skeletonlabs/skeleton';
 	import type { AutocompleteOption, PopupSettings } from '@skeletonlabs/skeleton';
 	import { statesGraph } from '../statesGraph';
-	import { guessedStates } from '../stores';
+	import { guessCount, guessedStates, guessesRemaining } from '../stores';
 
 	let popupSettings: PopupSettings = {
 		event: 'focus-click',
@@ -57,7 +57,7 @@
 			class="btn bg-primary-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-primary-800"
 			on:click={submitGuess}
 		>
-			Guess
+			Guess ({$guessCount + 1} / {$guessesRemaining})
 		</button>
 	</div>
 

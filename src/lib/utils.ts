@@ -1,6 +1,6 @@
 import { derived } from 'svelte/store';
 import { statesGraph } from './statesGraph';
-import { startState, targetState, guessedStates } from './stores';
+import { startState, targetState, guessedStates, guessesRemaining, guessCount } from './stores';
 
 /* 
     TODO: implement sub optimal win condition
@@ -104,8 +104,11 @@ export const gameStatus = derived(
 
 		const optimalGuesses = shortestPath.length - 2; // // -2 to exclude start and target
 		const maxGuesses = optimalGuesses + 3; // guess wiggle room
-		const guessCount = $guessedStates.length;
-		const guessesRemaining = maxGuesses - guessCount;
+		const currentGuessCount = $guessedStates.length;
+		const remainingGuesses = maxGuesses - currentGuessCount;
+
+		guessesRemaining.set(remainingGuesses);
+		guessCount.set(currentGuessCount);
 
 		// Check if guessed path is a valid path from start to target
 		const isValidPath = isValidAlternativePath($guessedStates, $startState, $targetState);
@@ -121,7 +124,7 @@ export const gameStatus = derived(
 
 		// Win Condition #2 (optimal): Same length as findShortestPath generated path
 		// prettier-ignore
-		if (isValidPath && (guessCount === optimalGuesses)) {
+		if (isValidPath && (currentGuessCount === optimalGuesses)) {
 			console.log(`Optimal win triggered`);
 			return {
 				status: 'win',
@@ -131,7 +134,7 @@ export const gameStatus = derived(
 
 		// Win Condition #3 (sub-optimal): check alternative valid paths
 		// prettier-ignore
-		if (isValidPath && ((guessCount > optimalGuesses) && (guessCount <= maxGuesses))) {
+		if (isValidPath && ((currentGuessCount > optimalGuesses) && (currentGuessCount <= maxGuesses))) {
 			console.log(`Sub-win triggered`);
 			return {
 				status: 'sub-win',
@@ -140,7 +143,7 @@ export const gameStatus = derived(
 		}
 
 		// Lose Condition: If guesses exceed maxGuesses
-		if (guessCount === maxGuesses) {
+		if (currentGuessCount === maxGuesses) {
 			console.log(`Loss triggered`);
 			return {
 				status: 'lose',
@@ -151,7 +154,7 @@ export const gameStatus = derived(
 		// Continue
 		return {
 			status: 'playing',
-			message: `Keep guessing! ${guessesRemaining} guesses left.`
+			message: `Keep guessing! ${remainingGuesses} guesses left.`
 		};
 	}
 );
