@@ -2,7 +2,7 @@
 	import { Autocomplete, popup } from '@skeletonlabs/skeleton';
 	import type { AutocompleteOption, PopupSettings } from '@skeletonlabs/skeleton';
 	import { statesGraph } from '../statesGraph';
-	import { guessCount, guessedStates, guessesRemaining, startState } from '../stores';
+	import { guessCount, guessedStates, guessesRemaining, startState, targetState } from '../stores';
 
 	let popupSettings: PopupSettings = {
 		event: 'focus-click',
@@ -34,7 +34,7 @@
 	// Filtered list: remove startState, targetState, and guessedStates
 	$: filteredStates = Object.keys(statesGraph)
 		.filter(
-			(state) => state !== $startState && state !== $startState && !$guessedStates.includes(state)
+			(state) => state !== $startState && state !== $targetState && !$guessedStates.includes(state)
 		)
 		.map((state) => ({
 			label: state,
