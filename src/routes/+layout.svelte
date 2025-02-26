@@ -61,8 +61,8 @@
 			</svelte:fragment>
 
 			<svelte:fragment slot="trail">
-				<!-- Beta chip -->
-				<span class="chip variant-filled">beta</span>
+				<!-- Beta Chip -->
+				<span class="chip variant-filled chip-text">beta</span>
 
 				<!-- Dark/Light Mode Toggle -->
 				<LightSwitch />
@@ -92,6 +92,12 @@
 	.journy-title {
 		font-family: 'Gloria Hallelujah', cursive;
 		font-size: 1.5rem;
+		font-weight: bold;
+	}
+
+	.chip-text {
+		font-family: 'Gloria Hallelujah', cursive;
+		font-size: 0.9rem;
 		font-weight: bold;
 	}
 </style>
