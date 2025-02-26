@@ -6,6 +6,8 @@
 
 	const states = Object.keys(statesGraph);
 
+	let isLoading = true;
+
 	// console.log('states', states);
 
 	function getRandomStatePair() {
@@ -34,6 +36,7 @@
 		startState.set(start);
 		targetState.set(target);
 		pathLength.set(length);
+		isLoading = false;
 	});
 
 	// console.log('startState', startState);
@@ -41,8 +44,12 @@
 </script>
 
 <div class="flex flex-col items-center space-y-4 p-2">
-	<h3 class="h4">
-		to go from <span class="font-semibold text-primary-600">{$startState}</span> to
-		<span class="font-semibold text-secondary-600">{$targetState}</span>
-	</h3>
+	{#if isLoading}
+		<h3 class="h4 animate-pulse">finding your journy...</h3>
+	{:else}
+		<h3 class="h4">
+			to go from <span class="font-semibold text-primary-600">{$startState}</span> to
+			<span class="font-semibold text-secondary-600">{$targetState}</span>
+		</h3>
+	{/if}
 </div>

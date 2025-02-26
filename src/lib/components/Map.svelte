@@ -5,6 +5,7 @@
 	import { feature } from 'topojson-client';
 	import type { FeatureCollection, Feature, Geometry } from 'geojson';
 	import { startState, targetState, guessedStates } from '../stores';
+	import { ProgressRadial } from '@skeletonlabs/skeleton';
 
 	/*
 	TODO
@@ -13,6 +14,8 @@
 		- viewBox, w-full h-auto, dynamic projection, etc.
 	*/
 
+	// Note: to avoid map delay, added isMapLoading, forceLoading, loadingDelay, and setTimeout
+
 	const geoUrl = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json';
 
 	type StateFeature = Feature<Geometry, { name: string }>;
@@ -20,6 +23,9 @@
 
 	let states: StateFeature[] = [];
 	// let guessedStates: string[] = [];
+
+	let isMapLoading = true;
+	let forceLoading = true;
 
 	// Store Subscription
 	let start: string;
@@ -39,6 +45,7 @@
 
 	// Fetch the map data when component mounts
 	onMount(async () => {
+		const loadingDelay = 800;
 		try {
 			const data = (await json(geoUrl)) as any;
 			const stateCollection = feature(data, data.objects.states) as unknown as StateCollection;
@@ -46,7 +53,14 @@
 			// console.log('Loaded states:', states);
 		} catch (error) {
 			// console.error('Error loading map data:', error);
+		} finally {
+			isMapLoading = false;
 		}
+
+		// Force the spinner to be visible for at least loadingDelay ms
+		setTimeout(() => {
+			forceLoading = false;
+		}, loadingDelay);
 	});
 
 	// Set state colors, use Skeleton Vintage Color Palette
@@ -68,15 +82,21 @@
 
 <!-- Render the map -->
 <div class="map-container">
-	<div class="map-glow"></div>
-	<!-- Glowing effect -->
-	<svg width="550" height="350" viewBox="0 0 960 600">
-		<g>
-			{#each states as state}
-				<path d={pathGenerator(state)} fill={getFillColor(state.properties.name)} stroke="#FFF" />
-			{/each}
-		</g>
-	</svg>
+	{#if isMapLoading}
+		<!-- This spinner looks dated but can always change later -->
+		<!-- <ProgressRadial value={undefined} /> -->
+		<div class=" bg-gray-200 animate-pulse rounded-md"></div>
+	{:else}
+		<div class="map-glow"></div>
+		<!-- Glowing effect -->
+		<svg width="550" height="350" viewBox="0 0 960 600">
+			<g>
+				{#each states as state}
+					<path d={pathGenerator(state)} fill={getFillColor(state.properties.name)} stroke="#FFF" />
+				{/each}
+			</g>
+		</svg>
+	{/if}
 </div>
 
 <style lang="postcss">
