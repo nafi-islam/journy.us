@@ -63,24 +63,35 @@ function containsAllElements(arr1: string[], arr2: string[]): boolean {
 	return arr1.every((state) => arr2.includes(state));
 }
 
-// TODO (BREAKING): Function to check if the guessed path is a valid path from start to target
+// Function to check if the guessed path is a valid path from start to target
 // Note: guesses can be out of order but must be connected
 function isValidAlternativePath(guessed: string[], start: string, target: string): boolean {
 	if (guessed.length === 0) return false;
-	if (!statesGraph[start]?.includes(guessed[0])) return false; // First guess must connect to start
 
-	let currentState = start;
+	// Create a graph of guessed states + start and target
+	const guessedSet = new Set([start, ...guessed, target]);
 
-	// Check adjacency between guessed states
-	for (let i = 0; i < guessed.length; i++) {
-		if (!statesGraph[currentState]?.includes(guessed[i])) {
-			return false; // If a guessed state is not adjacent, it's invalid
+	// BFS to check if guessed states form a connected path
+	const queue: string[] = [start];
+	const visited = new Set<string>();
+
+	while (queue.length > 0) {
+		const currentState = queue.shift()!;
+		visited.add(currentState);
+
+		// If we reached the target, the path is valid
+		if (currentState === target) return true;
+
+		// Explore only guessed states
+		for (const neighbor of statesGraph[currentState] || []) {
+			if (!visited.has(neighbor) && guessedSet.has(neighbor)) {
+				queue.push(neighbor);
+			}
 		}
-		currentState = guessed[i];
 	}
 
-	// Last guess must connect to the target
-	return statesGraph[currentState]?.includes(target);
+	// If BFS couldn't reach the target, return false
+	return false;
 }
 
 // Deriving game status dynamically
@@ -116,10 +127,14 @@ export const gameStatus = derived(
 		guessCount.set(currentGuessCount);
 
 		// Check if guessed path is a valid path from start to target
-		const isValidPath = isValidAlternativePath($guessedStates, $startState, $targetState);
+		// const isValidPath = isValidAlternativePath($guessedStates, $startState, $targetState);
 
 		// Win Condition #1 (optimal): findShortestPath generated shortest path
-		if (intermediateStates.length > 0 && containsAllElements(intermediateStates, $guessedStates)) {
+		if (
+			intermediateStates.length > 0 && // Ensure BFS path has intermediates
+			containsAllElements(intermediateStates, $guessedStates) && // Ensure all BFS states are guessed
+			currentGuessCount === optimalGuesses // Ensure player used the exact number of guesses
+		) {
 			console.log(`Optimal win triggered`);
 			return {
 				status: 'win',
@@ -128,9 +143,11 @@ export const gameStatus = derived(
 		}
 
 		// Win Condition #2 (optimal): Same length as findShortestPath generated path
-		// prettier-ignore
-		if (isValidPath && (currentGuessCount === optimalGuesses)) {
-			console.log(`Optimal win triggered`);
+		if (
+			isValidAlternativePath($guessedStates, $startState, $targetState) &&
+			currentGuessCount === optimalGuesses
+		) {
+			console.log('Alternative optimal win triggered');
 			return {
 				status: 'win',
 				message: `Win Triggered: Condition - Found another optimal path. Optimal path: ${shortestPath.join(' → ')}`
@@ -138,9 +155,12 @@ export const gameStatus = derived(
 		}
 
 		// Win Condition #3 (sub-optimal): check alternative valid paths
-		// prettier-ignore
-		if (isValidPath && ((currentGuessCount > optimalGuesses) && (currentGuessCount <= maxGuesses))) {
-			console.log(`Sub-win triggered`);
+		if (
+			isValidAlternativePath($guessedStates, $startState, $targetState) &&
+			currentGuessCount > optimalGuesses &&
+			currentGuessCount <= maxGuesses
+		) {
+			console.log('Sub-optimal win triggered');
 			return {
 				status: 'sub-win',
 				message: `Win Triggered: Condition - Found sub optimal path. Optimal path: ${shortestPath.join(' → ')}`
@@ -149,7 +169,7 @@ export const gameStatus = derived(
 
 		// Lose Condition: If guesses exceed maxGuesses
 		if (currentGuessCount === maxGuesses) {
-			console.log(`Loss triggered`);
+			console.log('Loss triggere');
 			return {
 				status: 'lose',
 				message: `Loss Triggered: Condition - No guesses remaining. Optimal path: ${shortestPath.join(' → ')}`
