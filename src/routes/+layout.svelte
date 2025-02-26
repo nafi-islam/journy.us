@@ -60,6 +60,9 @@
 			</svelte:fragment>
 
 			<svelte:fragment slot="trail">
+				<!-- Beta chip -->
+				<span class="chip variant-filled">beta</span>
+
 				<!-- Dark/Light Mode Toggle -->
 				<LightSwitch />
 
