@@ -3,8 +3,19 @@
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import type { ModalSettings } from '@skeletonlabs/skeleton';
 	import { startState, targetState, guessedStates } from '../stores';
+	import confetti from 'canvas-confetti';
 
 	const modalStore = getModalStore();
+
+	// Function to trigger confetti when the user wins
+	async function triggerConfetti() {
+		const confetti = (await import('canvas-confetti')).default; // Dynamically import
+		confetti({
+			particleCount: 100,
+			spread: 70,
+			origin: { y: 0.8 }
+		});
+	}
 
 	// Function to open the result modal when the game ends
 	$: if (
@@ -12,7 +23,13 @@
 		$gameStatus.status === 'sub-win' ||
 		$gameStatus.status === 'lose'
 	) {
-		openResultModal();
+		if ($gameStatus.status === 'win' || $gameStatus.status === 'sub-win') {
+			triggerConfetti();
+			console.log('confetti triggered');
+		}
+		setTimeout(() => {
+			openResultModal();
+		}, 1000);
 	}
 
 	function openResultModal() {
