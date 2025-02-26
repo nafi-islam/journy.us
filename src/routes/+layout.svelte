@@ -12,6 +12,7 @@
 
 	import { Map2 } from 'tabler-icons-svelte';
 	import { QuestionMark } from 'tabler-icons-svelte';
+	import Footer from '$lib/components/Footer.svelte';
 
 	initializeStores();
 
@@ -79,6 +80,9 @@
 
 	<!-- Page Content -->
 	<slot />
+
+	<!-- Footer -->
+	<Footer />
 </AppShell>
 
 <!-- Import Google Font -->
