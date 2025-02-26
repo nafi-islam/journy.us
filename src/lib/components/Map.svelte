@@ -82,13 +82,12 @@
 
 <!-- Render the map -->
 <div class="map-container">
-	{#if isMapLoading}
-		<!-- This spinner looks dated but can always change later -->
-		<!-- <ProgressRadial value={undefined} /> -->
-		<div class=" bg-gray-200 animate-pulse rounded-md"></div>
+	<div class="map-glow"></div>
+	{#if isMapLoading || forceLoading}
+		<div class="map-loader">
+			<ProgressRadial value={undefined} class="text-primary-500" meter="stroke-primary-500" />
+		</div>
 	{:else}
-		<div class="map-glow"></div>
-		<!-- Glowing effect -->
 		<svg width="550" height="350" viewBox="0 0 960 600">
 			<g>
 				{#each states as state}
@@ -105,9 +104,22 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		width: 550px;
+		height: 350px;
+		margin: auto;
 	}
 
-	/* The glow effect */
+	.map-loader {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 10;
+	}
+
 	.map-glow {
 		position: absolute;
 		top: 50%;
