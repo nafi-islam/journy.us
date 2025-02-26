@@ -28,7 +28,7 @@
 			nafi
 		</a>
 		with
-		<IconHeart size={18} class=" transition duration-200" />
+		<IconHeart size={18} />
 	</span>
 	<span>|</span>
 	<a

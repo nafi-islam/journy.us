@@ -1,14 +1,53 @@
 <script lang="ts">
 	import { gameStatus } from '../utils';
-</script>
+	import { getModalStore } from '@skeletonlabs/skeleton';
+	import type { ModalSettings } from '@skeletonlabs/skeleton';
+	import { startState, targetState, guessedStates } from '../stores';
 
-{#if $gameStatus.status !== 'waiting'}
-	<div
-		class="game-status p-4 rounded-md text-center"
-		class:green-500={$gameStatus.status === 'win'}
-		class:yellow-500={$gameStatus.status === 'sub-win'}
-		class:red-500={$gameStatus.status !== 'win' && $gameStatus.status !== 'sub-win'}
-	>
-		<h3 class="text-white font-semibold">{$gameStatus.message}</h3>
-	</div>
-{/if}
+	const modalStore = getModalStore();
+
+	// Function to open the result modal when the game ends
+	$: if (
+		$gameStatus.status === 'win' ||
+		$gameStatus.status === 'sub-win' ||
+		$gameStatus.status === 'lose'
+	) {
+		openResultModal();
+	}
+
+	function openResultModal() {
+		// Extract game details
+		const guessedRoute =
+			$guessedStates.length > 0 ? $guessedStates.join(' → ') : 'No route guessed';
+		const idealRoute = $gameStatus.message.match(/Optimal path: (.*)/)?.[1] || 'N/A';
+
+		// Define modal settings based on game outcome
+		// TODO: button style: colors, rounded, and hover
+		const modalContent: ModalSettings = {
+			type: 'confirm',
+			title:
+				$gameStatus.status === 'win'
+					? '🎉 Congratulations, this was an optimal win!'
+					: $gameStatus.status === 'sub-win'
+						? '✨ Congratulations, this was a sub-optimal win!'
+						: '❌ Game Over',
+			body: `
+				<div class="text-lg text-center">
+					<p><strong>Your Route:</strong> <span class="text-primary-500">${$startState}  →  ${guessedRoute}  →  ${$targetState}</span></p>
+					<p><strong>Our Optimal Route:</strong> <span class="text-secondary-500">${idealRoute}</span></p>
+				</div>
+			`,
+			backdropClasses: 'bg-black bg-opacity-100',
+			modalClasses: 'p-6 rounded-lg shadow-lg bg-surface-500 dark:bg-surface-500',
+			buttonTextConfirm: 'Play Again',
+			response: () => resetGame()
+		};
+
+		modalStore.trigger(modalContent);
+	}
+
+	// TODO: replace with some sort of query so you don't force a refresh -- SvelteQuery?
+	function resetGame() {
+		location.reload(); // page reload
+	}
+</script>
