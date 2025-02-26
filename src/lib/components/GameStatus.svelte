@@ -33,12 +33,12 @@
 						: '❌ Game Over',
 			body: `
 				<div class="text-lg text-center">
-					<p><strong>Your Route:</strong> <span class="text-primary-500">${$startState}  →  ${guessedRoute}  →  ${$targetState}</span></p>
-					<p><strong>Our Optimal Route:</strong> <span class="text-secondary-500">${idealRoute}</span></p>
+					<p><strong>Your Route:</strong> <span class="text-primary-500" style="text-shadow: 0.5px 0.5px 1px rgba(0, 0, 0, 0.5);">${$startState}  →  ${guessedRoute}  →  ${$targetState}</span></p>
+					<p><strong>Our Optimal Route:</strong> <span class="text-secondary-500" style="text-shadow: 0.5px 0.5px 1px rgba(0, 0, 0, 0.5);">${idealRoute}</span></p>
 				</div>
 			`,
 			backdropClasses: 'bg-black bg-opacity-100',
-			modalClasses: 'p-6 rounded-lg shadow-lg bg-surface-500 dark:bg-surface-500',
+			modalClasses: 'p-6 rounded-xl shadow-lg bg-surface-500 dark:bg-surface-500',
 			buttonTextConfirm: 'Play Again',
 			response: () => resetGame()
 		};
