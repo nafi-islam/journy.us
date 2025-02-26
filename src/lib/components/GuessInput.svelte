@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { Autocomplete, popup } from '@skeletonlabs/skeleton';
+	import {
+		Autocomplete,
+		initializeStores,
+		popup,
+		type ToastSettings
+	} from '@skeletonlabs/skeleton';
 	import type { AutocompleteOption, PopupSettings } from '@skeletonlabs/skeleton';
 	import { statesGraph } from '../statesGraph';
 	import {
@@ -9,6 +14,11 @@
 		startState,
 		targetState
 	} from '../stores';
+	import { formatStateName } from '../utils';
+
+	import { Toast, getToastStore } from '@skeletonlabs/skeleton';
+
+	const toastStore = getToastStore();
 
 	let popupSettings: PopupSettings = {
 		event: 'focus-click',
@@ -22,19 +32,37 @@
 		inputPopupDemo = event.detail.label;
 	}
 
-	// Added submitGuess
-	import { formatStateName } from '../utils';
+	function errorToastToggle() {
+		const toast: ToastSettings = {
+			message: '🚨 invalid state name!',
+			background: 'variant-filled-error',
+			timeout: 3000
+		};
+		toastStore.trigger(toast);
+		console.log('toast clicked');
+		console.log('toast message', toast.message);
+	}
 
+	// Submit Guess with Validation & Toast Notification
 	function submitGuess() {
 		if (inputPopupDemo.trim() !== '') {
 			const formattedGuess = formatStateName(inputPopupDemo);
 
+			// Check if the formatted guess exists in statesGraph
+			if (!(formattedGuess in statesGraph)) {
+				// Show a toast notification if invalid
+				errorToastToggle();
+				return;
+			}
+
+			// Add valid guess if not already guessed
 			guessedStates.update((guesses) => {
 				if (!guesses.includes(formattedGuess)) {
-					return [...guesses, formattedGuess]; // Reactivity
+					return [...guesses, formattedGuess];
 				}
 				return guesses;
 			});
+
 			inputPopupDemo = ''; // Clear input after guessing
 		}
 	}

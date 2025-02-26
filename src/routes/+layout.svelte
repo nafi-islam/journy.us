@@ -7,6 +7,9 @@
 	import { storePopup } from '@skeletonlabs/skeleton';
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
 
+	import { Toast, getToastStore } from '@skeletonlabs/skeleton';
+	// import type { ToastSettings, ToastStore } from '@skeletonlabs/skeleton';
+
 	import { Map2 } from 'tabler-icons-svelte';
 	import { QuestionMark } from 'tabler-icons-svelte';
 
@@ -15,6 +18,7 @@
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 
 	const modalStore = getModalStore();
+	// const toastStore = getToastStore();
 
 	function modalToggle() {
 		const modal: ModalSettings = {
@@ -39,6 +43,8 @@
 />
 
 <Modal />
+
+<Toast position="t" />
 
 <!-- App Shell -->
 <AppShell>
