@@ -2,31 +2,9 @@
 	import { onMount } from 'svelte';
 	import { startState, targetState, pathLength, statesLoaded, isLoading } from '../stores';
 	import { statesGraph } from '$lib/statesGraph';
-	import { findShortestPath, checkLoadingComplete } from '$lib/utils';
-
-	const states = Object.keys(statesGraph);
+	import { findShortestPath, checkLoadingComplete, getRandomStatePair } from '$lib/utils';
 
 	// console.log('states', states);
-
-	function getRandomStatePair() {
-		let start, target, shortestPath;
-
-		do {
-			start = states[Math.floor(Math.random() * states.length)];
-			target = states[Math.floor(Math.random() * states.length)];
-			shortestPath = findShortestPath(start, target);
-
-			// !shortestPath is null case
-			// choose a state that is at least 3 away and 6 at most
-			// >7 or <4 ensures avoids adjacent picks
-		} while (!shortestPath || shortestPath.length > 7 || shortestPath.length < 4);
-
-		console.log('shortestPath length (includes start, target):', shortestPath.length);
-		console.log('shortestPath length (excludes start, target):', shortestPath.length - 2);
-
-		// return object literal
-		return { start, target, length: shortestPath.length - 2 }; // subtract 1 to exclude start state. don't need 2? verify later
-	}
 
 	onMount(() => {
 		const { start, target, length } = getRandomStatePair();

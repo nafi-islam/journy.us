@@ -1,8 +1,14 @@
 <script lang="ts">
-	import { gameStatus } from '../utils';
+	import { gameStatus, getRandomStatePair } from '../utils';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import type { ModalSettings } from '@skeletonlabs/skeleton';
-	import { startState, targetState, guessedStates } from '../stores';
+	import {
+		startState,
+		targetState,
+		guessedStates,
+		guessCount,
+		initialGuessesRemaining
+	} from '../stores';
 	import confetti from 'canvas-confetti';
 
 	const modalStore = getModalStore();
@@ -17,6 +23,22 @@
 		});
 	}
 
+	function resetGame() {
+		// Reset guessed states
+		guessedStates.set([]);
+
+		// Reset guess count
+		guessCount.set(0);
+
+		// Generate new start & target states
+		const { start, target, length } = getRandomStatePair();
+		startState.set(start);
+		targetState.set(target);
+		initialGuessesRemaining.set(length + 3);
+
+		console.log('Game reset without reload');
+	}
+
 	// Function to open the result modal when the game ends
 	$: if (
 		$gameStatus.status === 'win' ||
@@ -29,7 +51,7 @@
 		}
 		setTimeout(() => {
 			openResultModal();
-		}, 1000);
+		}, 500);
 	}
 
 	function openResultModal() {
@@ -61,10 +83,5 @@
 		};
 
 		modalStore.trigger(modalContent);
-	}
-
-	// TODO: replace with some sort of query so you don't force a refresh -- SvelteQuery?
-	function resetGame() {
-		location.reload(); // page reload
 	}
 </script>

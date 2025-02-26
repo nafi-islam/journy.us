@@ -14,6 +14,30 @@ import {
 
 let loadingDelayApplied = false;
 
+const states = Object.keys(statesGraph);
+
+// Function to choose a valid start and target state for prompt
+export function getRandomStatePair() {
+	let start, target, shortestPath;
+
+	do {
+		start = states[Math.floor(Math.random() * states.length)];
+		target = states[Math.floor(Math.random() * states.length)];
+		shortestPath = findShortestPath(start, target);
+
+		// !shortestPath is null case
+		// choose a state that is at least 3 away and 6 at most
+		// >7 or <4 ensures avoids adjacent picks
+	} while (!shortestPath || shortestPath.length > 7 || shortestPath.length < 4);
+
+	console.log('shortestPath length (includes start, target):', shortestPath.length);
+	console.log('shortestPath length (excludes start, target):', shortestPath.length - 2);
+
+	// return object literal
+	return { start, target, length: shortestPath.length - 2 }; // subtract 1 to exclude start state. don't need 2? verify later
+}
+
+// Function to sync the prompt and map render time
 export function checkLoadingComplete() {
 	if (get(mapLoaded) && get(statesLoaded)) {
 		if (!loadingDelayApplied) {
@@ -34,6 +58,23 @@ export function formatStateName(state: string): string {
 		.split(/\s+/) // Split by spaces
 		.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
 		.join(' '); // Rejoin into a proper state name
+}
+
+// Function to reset states to avoid forced reload
+function resetGame() {
+	// Reset guessed states
+	guessedStates.set([]);
+
+	// Reset guess count
+	guessCount.set(0);
+
+	// Generate new start & target states
+	const { start, target, length } = getRandomStatePair();
+	startState.set(start);
+	targetState.set(target);
+	initialGuessesRemaining.set(length + 3);
+
+	console.log('Game reset without reload!');
 }
 
 // Function to find the shortest path using BFS
