@@ -7,3 +7,6 @@ export const guessCount = writable<number>(0);
 export const initialGuessesRemaining = writable<number>(0);
 export const guessesRemaining = writable<number>(0); // might be unnecessary
 export const pathLength = writable<number>(0);
+export const isLoading = writable(true);
+export const mapLoaded = writable(false);
+export const statesLoaded = writable(false);

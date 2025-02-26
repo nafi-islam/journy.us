@@ -1,12 +1,10 @@
 <script>
 	import { onMount } from 'svelte';
-	import { startState, targetState, pathLength } from '../stores';
+	import { startState, targetState, pathLength, statesLoaded, isLoading } from '../stores';
 	import { statesGraph } from '$lib/statesGraph';
-	import { findShortestPath } from '$lib/utils';
+	import { findShortestPath, checkLoadingComplete } from '$lib/utils';
 
 	const states = Object.keys(statesGraph);
-
-	let isLoading = true;
 
 	// console.log('states', states);
 
@@ -31,12 +29,14 @@
 	}
 
 	onMount(() => {
-		// destructure for function call
 		const { start, target, length } = getRandomStatePair();
 		startState.set(start);
 		targetState.set(target);
 		pathLength.set(length);
-		isLoading = false;
+
+		// Mark state selection as loaded
+		statesLoaded.set(true);
+		checkLoadingComplete(); // Check if map is also ready
 	});
 
 	// console.log('startState', startState);
@@ -44,7 +44,7 @@
 </script>
 
 <div class="flex flex-col items-center space-y-4 p-2">
-	{#if isLoading}
+	{#if $isLoading}
 		<h3 class="h4 animate-pulse">finding your journy...</h3>
 	{:else}
 		<h3 class="h4">

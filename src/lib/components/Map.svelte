@@ -4,7 +4,9 @@
 	import { json } from 'd3-fetch';
 	import { feature } from 'topojson-client';
 	import type { FeatureCollection, Feature, Geometry } from 'geojson';
-	import { startState, targetState, guessedStates } from '../stores';
+	import { startState, targetState, guessedStates, mapLoaded, isLoading } from '../stores';
+	import { checkLoadingComplete } from '$lib/utils';
+
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
 
 	/*
@@ -24,8 +26,7 @@
 	let states: StateFeature[] = [];
 	// let guessedStates: string[] = [];
 
-	let isMapLoading = true;
-	let forceLoading = true;
+	// let forceLoading = true;
 
 	// Store Subscription
 	let start: string;
@@ -45,22 +46,17 @@
 
 	// Fetch the map data when component mounts
 	onMount(async () => {
-		const loadingDelay = 800;
 		try {
 			const data = (await json(geoUrl)) as any;
 			const stateCollection = feature(data, data.objects.states) as unknown as StateCollection;
 			states = stateCollection.features;
-			// console.log('Loaded states:', states);
 		} catch (error) {
-			// console.error('Error loading map data:', error);
+			console.error('Error loading map data:', error);
 		} finally {
-			isMapLoading = false;
+			// Mark the map as loaded
+			mapLoaded.set(true);
+			checkLoadingComplete(); // Check if prompt is also ready
 		}
-
-		// Force the spinner to be visible for at least loadingDelay ms
-		setTimeout(() => {
-			forceLoading = false;
-		}, loadingDelay);
 	});
 
 	// Set state colors, use Skeleton Vintage Color Palette
@@ -83,7 +79,7 @@
 <!-- Render the map -->
 <div class="map-container">
 	<div class="map-glow"></div>
-	{#if isMapLoading || forceLoading}
+	{#if $isLoading}
 		<div class="map-loader">
 			<ProgressRadial value={undefined} class="text-primary-500" meter="stroke-primary-500" />
 		</div>

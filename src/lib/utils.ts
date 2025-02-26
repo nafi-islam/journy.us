@@ -1,4 +1,4 @@
-import { derived } from 'svelte/store';
+import { derived, get } from 'svelte/store';
 import { statesGraph } from './statesGraph';
 import {
 	startState,
@@ -6,8 +6,26 @@ import {
 	guessedStates,
 	guessesRemaining,
 	guessCount,
-	initialGuessesRemaining
+	initialGuessesRemaining,
+	isLoading,
+	mapLoaded,
+	statesLoaded
 } from './stores';
+
+let loadingDelayApplied = false;
+
+export function checkLoadingComplete() {
+	if (get(mapLoaded) && get(statesLoaded)) {
+		if (!loadingDelayApplied) {
+			loadingDelayApplied = true;
+			setTimeout(() => {
+				isLoading.set(false);
+			}, 800);
+		} else {
+			isLoading.set(false);
+		}
+	}
+}
 
 // Function to clean the user input
 export function formatStateName(state: string): string {
