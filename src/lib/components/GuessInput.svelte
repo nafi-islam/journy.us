@@ -107,7 +107,7 @@
 			on:click={submitGuess}
 			tabindex="0"
 		>
-			Guess ({$guessCount + 1} / {$initialGuessesRemaining})
+			Guess ({Math.min($guessCount + 1, $initialGuessesRemaining)} / {$initialGuessesRemaining})
 		</button>
 	</div>
 
