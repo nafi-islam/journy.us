@@ -20,6 +20,8 @@
 
 	const toastStore = getToastStore();
 
+	let guessButton: HTMLButtonElement | null = null;
+
 	let popupSettings: PopupSettings = {
 		event: 'focus-click',
 		target: 'popupAutocomplete',
@@ -30,6 +32,10 @@
 
 	function onPopupDemoSelect(event: any): void {
 		inputPopupDemo = event.detail.label;
+
+		setTimeout(() => {
+			if (guessButton) guessButton.focus();
+		}, 100);
 	}
 
 	function errorToastToggle() {
@@ -91,12 +97,15 @@
 			bind:value={inputPopupDemo}
 			placeholder="Enter a state..."
 			use:popup={popupSettings}
+			on:keydown={(e) => e.key === 'Enter' && submitGuess()}
 		/>
 
 		<!-- Guess Button -->
 		<button
+			bind:this={guessButton}
 			class="btn bg-primary-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-primary-800"
 			on:click={submitGuess}
+			tabindex="0"
 		>
 			Guess ({$guessCount + 1} / {$initialGuessesRemaining})
 		</button>
