@@ -91,7 +91,12 @@
 		<svg width="550" height="350" viewBox="0 0 960 600">
 			<g>
 				{#each states as state}
-					<path d={pathGenerator(state)} fill={getFillColor(state.properties.name)} stroke="#FFF" />
+					<path
+						d={pathGenerator(state)}
+						fill={getFillColor(state.properties.name)}
+						stroke="#FFF"
+						class="transition duration-200 ease-in-out hover:stroke-2 hover:stroke-black"
+					/>
 				{/each}
 			</g>
 		</svg>
