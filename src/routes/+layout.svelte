@@ -62,17 +62,24 @@
 
 			<svelte:fragment slot="trail">
 				<!-- Beta Chip -->
-				<span class="chip variant-filled chip-text">beta</span>
+				<span class="chip chip-text border border-current px-2 py-1 rounded-full bg-transparent"
+					>beta</span
+				>
 
 				<!-- Dark/Light Mode Toggle -->
-				<LightSwitch />
+				<LightSwitch
+					class="transition duration-200"
+					bgLight="bg-[#FBE7D1]"
+					bgDark="bg-[#73420D]"
+					rounded="rounded-full"
+				/>
 
 				<!-- Help Button -->
 				<button
-					class="btn-icon btn-sm variant-ghost-surface flex items-center justify-center w-10 h-10 p-2"
+					class="btn-icon btn-sm variant-ghost-surface flex items-center justify-center w-10 h-10 p-2 bg-transparent"
 					on:click={modalToggle}
 				>
-					<QuestionMark class="w-5 h-5" />
+					<QuestionMark class="w-4 h-4" />
 				</button>
 			</svelte:fragment>
 		</AppBar>
