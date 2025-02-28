@@ -12,9 +12,10 @@
 		guessedStates,
 		initialGuessesRemaining,
 		startState,
-		targetState
+		targetState,
+		showPlayAgain
 	} from '../stores';
-	import { formatStateName } from '../utils';
+	import { formatStateName, resetGame } from '../utils';
 
 	import { Toast, getToastStore } from '@skeletonlabs/skeleton';
 
@@ -104,10 +105,21 @@
 		<button
 			bind:this={guessButton}
 			class="btn bg-primary-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-primary-800"
-			on:click={submitGuess}
+			on:click={() => {
+				if ($showPlayAgain) {
+					showPlayAgain.set(false); // Reset state before calling resetGame
+					resetGame();
+				} else {
+					submitGuess();
+				}
+			}}
 			tabindex="0"
 		>
-			Guess ({Math.min($guessCount + 1, $initialGuessesRemaining)} / {$initialGuessesRemaining})
+			{#if $showPlayAgain}
+				Play Again
+			{:else}
+				Guess ({Math.min($guessCount + 1, $initialGuessesRemaining)} / {$initialGuessesRemaining})
+			{/if}
 		</button>
 	</div>
 

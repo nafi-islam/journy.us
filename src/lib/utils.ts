@@ -61,7 +61,7 @@ export function formatStateName(state: string): string {
 }
 
 // Function to reset states to avoid forced reload
-function resetGame() {
+export function resetGame() {
 	// Reset guessed states
 	guessedStates.set([]);
 
@@ -73,6 +73,8 @@ function resetGame() {
 	startState.set(start);
 	targetState.set(target);
 	initialGuessesRemaining.set(length + 3);
+
+	console.log('Modal closed play again button clicked (utils)');
 
 	console.log('Game reset without reload!');
 }

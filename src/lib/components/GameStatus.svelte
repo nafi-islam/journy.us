@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { gameStatus, getRandomStatePair } from '../utils';
+	import { gameStatus, getRandomStatePair, resetGame } from '../utils';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import type { ModalSettings } from '@skeletonlabs/skeleton';
 	import {
@@ -7,7 +7,8 @@
 		targetState,
 		guessedStates,
 		guessCount,
-		initialGuessesRemaining
+		initialGuessesRemaining,
+		showPlayAgain
 	} from '../stores';
 	import confetti from 'canvas-confetti';
 
@@ -21,22 +22,6 @@
 			spread: 70,
 			origin: { y: 0.8 }
 		});
-	}
-
-	function resetGame() {
-		// Reset guessed states
-		guessedStates.set([]);
-
-		// Reset guess count
-		guessCount.set(0);
-
-		// Generate new start & target states
-		const { start, target, length } = getRandomStatePair();
-		startState.set(start);
-		targetState.set(target);
-		initialGuessesRemaining.set(length + 3);
-
-		console.log('Game reset without reload');
 	}
 
 	// Function to open the result modal when the game ends
@@ -63,7 +48,7 @@
 		// Define modal settings based on game outcome
 		// TODO: button style: colors, rounded, and hover
 		const modalContent: ModalSettings = {
-			type: 'confirm',
+			type: 'alert',
 			title:
 				$gameStatus.status === 'win'
 					? '🎉 Congratulations, this was an optimal win!'
@@ -78,8 +63,11 @@
 			`,
 			backdropClasses: 'bg-black bg-opacity-100',
 			modalClasses: 'p-6 rounded-xl shadow-lg bg-surface-500 dark:bg-surface-500',
-			buttonTextConfirm: 'Play Again',
-			response: () => resetGame()
+			buttonTextCancel: 'Close',
+			response: () => {
+				console.log('close or escape clicked');
+				showPlayAgain.set(true); // change guess indicator to play again
+			}
 		};
 
 		modalStore.trigger(modalContent);
