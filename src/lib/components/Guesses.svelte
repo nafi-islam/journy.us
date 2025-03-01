@@ -9,7 +9,7 @@
 		<!-- Guesses Grid -->
 		<div class="flex flex-wrap justify-center gap-2 mb-2">
 			{#each $guessedStates as guess}
-				<div class="w-[130px] bg-primary-700 text-white text-center p-2 rounded-md">
+				<div class="w-[130px] bg-primary-500 text-white text-center p-2 rounded-md">
 					{guess}
 				</div>
 			{/each}

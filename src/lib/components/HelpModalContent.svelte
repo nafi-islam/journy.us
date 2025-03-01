@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
-	import { IconHeart } from '@tabler/icons-svelte';
+	import { Accordion, AccordionItem, getModalStore } from '@skeletonlabs/skeleton';
+
+	const modalStore = getModalStore();
 </script>
 
 <!-- Help Modal Content -->
-
-<div class="p-6 rounded-xl shadow-lg bg-surface-100 dark:bg-surface-800">
+<div class="modal-container p-6 rounded-xl shadow-lg bg-surface-100 dark:bg-surface-800">
 	<div class="font-bold text-2xl">🗺️ Welcome to Journy!</div>
 
 	<!-- Game Instructions -->
@@ -14,7 +14,7 @@
 		<p>
 			Start at the randomly chosen <span class="text-primary-500 font-semibold">start state</span>
 			and guess neighboring states to reach the
-			<span class="text-secondary-500 font-semibold">target state</span>.
+			<span class="text-secondary-600 font-semibold">target state</span>.
 		</p>
 		<p>You have a limited number of guesses – use them wisely!</p>
 	</div>
@@ -22,7 +22,7 @@
 	<!-- Accordion for Credits & Feedback -->
 	<Accordion class="card p-4 text-token shadow-md bg-surface-100 dark:bg-surface-800">
 		<!-- Credits Section -->
-		<AccordionItem>
+		<AccordionItem open>
 			<svelte:fragment slot="summary">
 				<p class="font-bold">🎭 Credits</p>
 			</svelte:fragment>
@@ -40,7 +40,7 @@
 					</a>
 				</span>
 				<p class="text-sm text-surface-700 dark:text-surface-300">
-					Journy was developed using Svelte and Skeleton UI for the user interface and over all
+					Journy was developed using Svelte and Skeleton UI for the user interface and overall
 					design, d3.js for map rendering, and Vite for the build tool.
 				</p>
 				<p class="text-sm text-surface-700 dark:text-surface-300">
@@ -71,6 +71,11 @@
 			</svelte:fragment>
 		</AccordionItem>
 	</Accordion>
+
+	<!-- Button Section -->
+	<div class="modal-footer">
+		<button class="btn variant-ghost-surface" on:click={() => modalStore.close()}>Close</button>
+	</div>
 </div>
 
 <style>
@@ -85,4 +90,21 @@
 	.outlined-text {
 		filter: drop-shadow(0.5px 0.5px 0 black) drop-shadow(-0.5px -0.5px 0 black);
 	}
+
+	.modal-container {
+		max-width: 600px;
+		margin: auto;
+		position: relative;
+	}
+
+	.modal-footer {
+		display: flex;
+		justify-content: flex-end;
+		padding-top: 1rem;
+	}
+
+	/* .btn-padding {
+		padding: 0.75rem 1.5rem;
+		border-radius: 8px;
+	} */
 </style>
