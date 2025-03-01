@@ -29,10 +29,10 @@
 		placement: 'top'
 	};
 
-	let inputPopupDemo: string = '';
+	let inputPopupError: string = '';
 
-	function onPopupDemoSelect(event: any): void {
-		inputPopupDemo = event.detail.label;
+	function onPopupErrorSelect(event: any): void {
+		inputPopupError = event.detail.label;
 
 		setTimeout(() => {
 			if (guessButton) guessButton.focus();
@@ -52,8 +52,8 @@
 
 	// Submit Guess with Validation & Toast Notification
 	function submitGuess() {
-		if (inputPopupDemo.trim() !== '') {
-			const formattedGuess = formatStateName(inputPopupDemo);
+		if (inputPopupError.trim() !== '') {
+			const formattedGuess = formatStateName(inputPopupError);
 
 			// Check if the formatted guess exists in statesGraph
 			if (!(formattedGuess in statesGraph)) {
@@ -70,7 +70,7 @@
 				return guesses;
 			});
 
-			inputPopupDemo = ''; // Clear input after guessing
+			inputPopupError = ''; // Clear input after guessing
 		}
 	}
 
@@ -95,7 +95,7 @@
 			class="input autocomplete w-full p-3 border rounded-md shadow-md focus:ring-primary-500 focus:border-primary-500"
 			type="search"
 			name="autocomplete-search"
-			bind:value={inputPopupDemo}
+			bind:value={inputPopupError}
 			placeholder="Enter a state..."
 			use:popup={popupSettings}
 			on:keydown={(e) => e.key === 'Enter' && submitGuess()}
@@ -131,9 +131,9 @@
 		tabindex="-1"
 	>
 		<Autocomplete
-			bind:input={inputPopupDemo}
+			bind:input={inputPopupError}
 			options={filteredStates}
-			on:selection={onPopupDemoSelect}
+			on:selection={onPopupErrorSelect}
 		/>
 	</div>
 </div>
