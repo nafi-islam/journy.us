@@ -25,7 +25,7 @@
 			class="journy-text text-transparent bg-clip-text box-decoration-clone bg-gradient-to-br
                 from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 transition duration-200 outlined-text"
 		>
-			nafi
+			NAFI
 		</a>
 		with
 		<IconHeart size={18} />

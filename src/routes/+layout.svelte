@@ -13,6 +13,7 @@
 	import { Map2 } from 'tabler-icons-svelte';
 	import { QuestionMark } from 'tabler-icons-svelte';
 	import Footer from '$lib/components/Footer.svelte';
+	import HelpModalContent from '$lib/components/HelpModalContent.svelte';
 
 	initializeStores();
 
@@ -21,16 +22,29 @@
 	const modalStore = getModalStore();
 	// const toastStore = getToastStore();
 
-	function modalToggle() {
+	function helpModalToggle() {
 		const modal: ModalSettings = {
-			type: 'alert',
-			title: 'welcome to journy !',
-			body: 'This is an example modal with game instructions.',
-			image: 'https://i.imgur.com/WOgTG96.gif'
+			type: 'component',
+			component: {
+				ref: HelpModalContent
+			}
 		};
 		modalStore.trigger(modal);
-		// console.log('modal clicked');
 	}
+
+	// function helpModalToggle() {
+	// 	const modal: ModalSettings = {
+	// 		type: 'alert',
+	// 		title: '📖 How to Play Journy',
+	// 		// component: {
+	// 		// 	ref: HelpModal, // Attach the HelpModalContent component
+	// 		// },
+	// 		body: 'This is an example modal with game instructions.',
+	// 		image: 'https://i.imgur.com/WOgTG96.gif'
+	// 	};
+	// 	modalStore.trigger(modal);
+	// 	// console.log('modal clicked');
+	// }
 </script>
 
 <link
@@ -77,7 +91,7 @@
 				<!-- Help Button -->
 				<button
 					class="btn-icon btn-sm variant-ghost-surface flex items-center justify-center w-10 h-10 p-2 bg-transparent"
-					on:click={modalToggle}
+					on:click={helpModalToggle}
 				>
 					<QuestionMark class="w-4 h-4" />
 				</button>
