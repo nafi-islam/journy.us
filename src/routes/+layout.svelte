@@ -19,6 +19,13 @@
 	import { QuestionMark } from 'tabler-icons-svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import HelpModalContent from '$lib/components/HelpModalContent.svelte';
+	import { dev } from '$app/environment';
+	import { injectAnalytics } from '@vercel/analytics/sveltekit';
+	import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
+
+	injectAnalytics({ mode: dev ? 'development' : 'production' });
+
+	injectSpeedInsights();
 
 	// read docs on getting user os preference for theme, too lazy right now
 
