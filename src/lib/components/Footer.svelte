@@ -32,7 +32,7 @@
 	</span>
 	<span>|</span>
 	<a
-		href="https://github.com/nafi-islam"
+		href="https://github.com/nafi-islam/journy.us"
 		target="_blank"
 		rel="noopener noreferrer"
 		class="text-surface-500 dark:text-surface-100 transition duration-200

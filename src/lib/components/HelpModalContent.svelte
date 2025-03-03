@@ -45,7 +45,7 @@
 				</p>
 				<p class="text-sm text-surface-700 dark:text-surface-300">
 					You can contribute on GitHub, <a
-						href="https://github.com/nafi-islam"
+						href="https://github.com/nafi-islam/journy.us"
 						target="_blank"
 						rel="noopener noreferrer"
 						class="underline hover:text-primary-500 dark:hover:text-primary-500">here!</a
@@ -61,11 +61,11 @@
 			</svelte:fragment>
 			<svelte:fragment slot="content">
 				<p class="text-sm text-surface-700 dark:text-surface-300">
-					Have suggestions or found a bug? Let me know by filling out this <a
-						href="https://nafiislam.com"
+					Have suggestions or found a bug? Let me know by sending an <a
+						href="mailto:nafi.islam321@gmail.com"
 						target="_blank"
 						rel="noopener noreferrer"
-						class="underline hover:text-primary-500 dark:hover:text-primary-500">form!</a
+						class="underline hover:text-primary-500 dark:hover:text-primary-500">email!</a
 					>
 				</p>
 			</svelte:fragment>
