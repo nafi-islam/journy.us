@@ -77,23 +77,23 @@
 
 <svelte:head>
 	<title>journy.us</title>
-	<link rel="icon" href="/map-emoji?v=2.png" />
-	<link rel="icon" type="image/png" href="/map-emoji?v=2.png" />
-	<link rel="icon" type="image/x-icon" href="/map-emoji?v=2.png" />
+	<link rel="icon" href="/map-icon.png" />
+	<!-- <link rel="icon" type="image/png" href="/map-emoji?v=2.png" />
+	<link rel="icon" type="image/x-icon" href="/map-emoji?v=2.png" /> -->
 	<!-- <link rel="apple-touch-icon" href="/apple-touch-icon.png" /> -->
 
 	<!-- Open Graph Meta Tags (for Facebook, LinkedIn) -->
 	<meta property="og:title" content="journy.us" />
 	<meta property="og:description" content="journy.us" />
 	<meta property="og:url" content="https://www.journy.us/" />
-	<meta property="og:image" content="https://www.journy.us/map-emoji?v=2.png" />
+	<meta property="og:image" content="https://www.journy.us/map-icon.png" />
 	<meta property="og:type" content="website" />
 
 	<!-- Twitter Card Meta Tags -->
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content="journy.us" />
 	<meta name="twitter:description" content="journy.us" />
-	<meta name="twitter:image" content="https://www.journy.us/map-emoji?v=2.png" />
+	<meta name="twitter:image" content="https://www.journy.us/map-icon.png" />
 
 	<!-- Viewport -->
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
