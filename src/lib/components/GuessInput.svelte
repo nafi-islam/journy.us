@@ -1,12 +1,7 @@
 <script lang="ts">
-	import {
-		Autocomplete,
-		initializeStores,
-		popup,
-		type ToastSettings
-	} from '@skeletonlabs/skeleton';
-	import type { AutocompleteOption, PopupSettings } from '@skeletonlabs/skeleton';
-	import { statesGraph } from '../statesGraph';
+	import { Autocomplete, popup, type ToastSettings } from '@skeletonlabs/skeleton';
+	import type { PopupSettings } from '@skeletonlabs/skeleton';
+	import { getToastStore } from '@skeletonlabs/skeleton';
 	import {
 		guessCount,
 		guessedStates,
@@ -15,9 +10,8 @@
 		targetState,
 		showPlayAgain
 	} from '../stores';
+	import { statesGraph } from '../statesGraph';
 	import { formatStateName, resetGame } from '../utils';
-
-	import { Toast, getToastStore } from '@skeletonlabs/skeleton';
 
 	const toastStore = getToastStore();
 
@@ -46,8 +40,8 @@
 			timeout: 3000
 		};
 		toastStore.trigger(toast);
-		console.log('toast clicked');
-		console.log('toast message', toast.message);
+		// console.log('toast clicked');
+		// console.log('toast message', toast.message);
 	}
 
 	// Submit Guess with Validation & Toast Notification
@@ -126,7 +120,6 @@
 	</div>
 
 	<!-- Autocomplete Dropdown -->
-	<!-- Added border border-surface-200 shadow-lg -->
 	<div
 		data-popup="popupAutocomplete"
 		class="card w-full max-w-sm max-h-48 p-4 overflow-y-auto absolute left-0 top-full z-50 rounded-md bg-surface-50 border border-surface-200 shadow-lg"

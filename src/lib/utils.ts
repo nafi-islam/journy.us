@@ -4,7 +4,6 @@ import {
 	startState,
 	targetState,
 	guessedStates,
-	guessesRemaining,
 	guessCount,
 	initialGuessesRemaining,
 	isLoading,
@@ -30,8 +29,8 @@ export function getRandomStatePair() {
 		// >7 or <4 ensures avoids adjacent picks
 	} while (!shortestPath || shortestPath.length > 7 || shortestPath.length < 4);
 
-	console.log('shortestPath length (includes start, target):', shortestPath.length);
-	console.log('shortestPath length (excludes start, target):', shortestPath.length - 2);
+	// console.log('shortestPath length (includes start, target):', shortestPath.length);
+	// console.log('shortestPath length (excludes start, target):', shortestPath.length - 2);
 
 	// return object literal
 	return { start, target, length: shortestPath.length - 2 }; // subtract 1 to exclude start state. don't need 2? verify later
@@ -74,9 +73,9 @@ export function resetGame() {
 	targetState.set(target);
 	initialGuessesRemaining.set(length + 3);
 
-	console.log('Modal closed play again button clicked (utils)');
+	// console.log('Modal closed play again button clicked (utils)');
 
-	console.log('Game reset without reload!');
+	// console.log('Game reset without reload!');
 }
 
 // Function to find the shortest path using BFS
@@ -86,11 +85,11 @@ export function findShortestPath(start: string, target: string): string[] | null
 		return null;
 	}
 
-	console.log(`Running findShortestPath from ${start} to ${target}`);
+	// console.log(`Running findShortestPath from ${start} to ${target}`);
 
 	// Eventually fix this in prompt so this won't ever happen
 	if (start === target) {
-		console.log(`Start and target are the same: ${start}`);
+		// console.log(`Start and target are the same: ${start}`);
 		return [start];
 	}
 
@@ -105,7 +104,7 @@ export function findShortestPath(start: string, target: string): string[] | null
 				const newPath = [...path, neighbor];
 
 				if (neighbor === target) {
-					console.log(`Found shortest path: ${newPath.join(' → ')}`);
+					// console.log(`Found shortest path: ${newPath.join(' ➡️ ')}`);
 					return newPath;
 				}
 
@@ -172,10 +171,10 @@ export const gameStatus = derived(
 			return { status: 'error', message: `No valid path from ${$startState} to ${$targetState}` };
 		}
 
-		console.log(
-			`Shortest Path from ${$startState} to ${$targetState}: ${shortestPath.join(' → ')}`
-		);
-		console.log(`Guessed States: ${$guessedStates.join(' → ')}`);
+		// console.log(
+		// 	`Shortest Path from ${$startState} to ${$targetState}: ${shortestPath.join(' ➡️ ')}`
+		// );
+		// console.log(`Guessed States: ${$guessedStates.join(' ➡️ ')}`);
 
 		const optimalGuesses = shortestPath.length - 2; // // -2 to exclude start and target
 		const maxGuesses = optimalGuesses + 3; // guess wiggle room
@@ -196,10 +195,10 @@ export const gameStatus = derived(
 			containsAllElements(intermediateStates, $guessedStates) && // Ensure all BFS states are guessed
 			currentGuessCount === optimalGuesses // Ensure player used the exact number of guesses
 		) {
-			console.log(`Optimal win triggered`);
+			// console.log(`Optimal win triggered`);
 			return {
 				status: 'win',
-				message: `Win Triggered: Condition - Found BFS optimal path. Optimal path: ${shortestPath.join(' → ')}`
+				message: `Win Triggered: Condition - Found BFS optimal path. Optimal path: ${shortestPath.join(' ➡️ ')}`
 			};
 		}
 
@@ -208,10 +207,10 @@ export const gameStatus = derived(
 			isValidAlternativePath($guessedStates, $startState, $targetState) &&
 			currentGuessCount === optimalGuesses
 		) {
-			console.log('Alternative optimal win triggered');
+			// console.log('Alternative optimal win triggered');
 			return {
 				status: 'win',
-				message: `Win Triggered: Condition - Found another optimal path. Optimal path: ${shortestPath.join(' → ')}`
+				message: `Win Triggered: Condition - Found another optimal path. Optimal path: ${shortestPath.join(' ➡️ ')}`
 			};
 		}
 
@@ -221,19 +220,19 @@ export const gameStatus = derived(
 			currentGuessCount > optimalGuesses &&
 			currentGuessCount <= maxGuesses
 		) {
-			console.log('Sub-optimal win triggered');
+			// console.log('Sub-optimal win triggered');
 			return {
 				status: 'sub-win',
-				message: `Win Triggered: Condition - Found sub optimal path. Optimal path: ${shortestPath.join(' → ')}`
+				message: `Win Triggered: Condition - Found sub optimal path. Optimal path: ${shortestPath.join(' ➡️ ')}`
 			};
 		}
 
 		// Lose Condition: If guesses exceed maxGuesses
 		if (currentGuessCount === maxGuesses) {
-			console.log('Loss triggere');
+			// console.log('Loss triggere');
 			return {
 				status: 'lose',
-				message: `Loss Triggered: Condition - No guesses remaining. Optimal path: ${shortestPath.join(' → ')}`
+				message: `Loss Triggered: Condition - No guesses remaining. Optimal path: ${shortestPath.join(' ➡️ ')}`
 			};
 		}
 

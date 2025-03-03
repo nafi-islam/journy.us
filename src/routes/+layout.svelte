@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.postcss';
+	import { onMount } from 'svelte';
 	import {
 		AppShell,
 		AppBar,
@@ -10,20 +11,14 @@
 	} from '@skeletonlabs/skeleton';
 	import { getModalStore, initializeStores, LightSwitch } from '@skeletonlabs/skeleton';
 	import type { ModalSettings } from '@skeletonlabs/skeleton';
-
 	import { storePopup } from '@skeletonlabs/skeleton';
+	import { Toast } from '@skeletonlabs/skeleton';
+	import { autoModeWatcher } from '@skeletonlabs/skeleton';
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
-
-	import { Toast, getToastStore } from '@skeletonlabs/skeleton';
-	// import type { ToastSettings, ToastStore } from '@skeletonlabs/skeleton';
-
 	import { Map2 } from 'tabler-icons-svelte';
 	import { QuestionMark } from 'tabler-icons-svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import HelpModalContent from '$lib/components/HelpModalContent.svelte';
-
-	import { autoModeWatcher } from '@skeletonlabs/skeleton';
-	import { onMount } from 'svelte';
 
 	// read docs on getting user os preference for theme, too lazy right now
 
@@ -31,15 +26,15 @@
 		autoModeWatcher();
 
 		modeOsPrefers.subscribe((value) => {
-			console.log('modeOsPrefers', value);
+			// console.log('modeOsPrefers', value);
 		});
 
 		modeUserPrefers.subscribe((value) => {
-			console.log('modeUserPrefers', value);
+			// console.log('modeUserPrefers', value);
 		});
 
 		modeCurrent.subscribe((value) => {
-			console.log('modeCurrent', value);
+			// console.log('modeCurrent', value);
 		});
 	});
 
@@ -59,20 +54,6 @@
 		};
 		modalStore.trigger(modal);
 	}
-
-	// function helpModalToggle() {
-	// 	const modal: ModalSettings = {
-	// 		type: 'alert',
-	// 		title: '📖 How to Play Journy',
-	// 		// component: {
-	// 		// 	ref: HelpModal, // Attach the HelpModalContent component
-	// 		// },
-	// 		body: 'This is an example modal with game instructions.',
-	// 		image: 'https://i.imgur.com/WOgTG96.gif'
-	// 	};
-	// 	modalStore.trigger(modal);
-	// 	// console.log('modal clicked');
-	// }
 </script>
 
 <link

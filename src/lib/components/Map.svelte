@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { ProgressRadial } from '@skeletonlabs/skeleton';
 	import { geoAlbersUsa, geoPath } from 'd3-geo';
 	import { json } from 'd3-fetch';
 	import { feature } from 'topojson-client';
 	import type { FeatureCollection, Feature, Geometry } from 'geojson';
 	import { startState, targetState, guessedStates, mapLoaded, isLoading } from '../stores';
 	import { checkLoadingComplete } from '$lib/utils';
-
-	import { ProgressRadial } from '@skeletonlabs/skeleton';
 
 	const geoUrl = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json';
 

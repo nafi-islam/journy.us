@@ -102,9 +102,4 @@
 		justify-content: flex-end;
 		padding-top: 1rem;
 	}
-
-	/* .btn-padding {
-		padding: 0.75rem 1.5rem;
-		border-radius: 8px;
-	} */
 </style>

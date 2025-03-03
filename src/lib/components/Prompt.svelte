@@ -1,8 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { startState, targetState, pathLength, statesLoaded, isLoading } from '../stores';
-	import { statesGraph } from '$lib/statesGraph';
-	import { findShortestPath, checkLoadingComplete, getRandomStatePair } from '$lib/utils';
+	import { checkLoadingComplete, getRandomStatePair } from '$lib/utils';
 
 	// console.log('states', states);
 
