@@ -86,7 +86,9 @@
 	// console.log('Autocomplete States:', states);
 </script>
 
-<div class="flex flex-col space-y-4 w-full max-w-md">
+<div
+	class="flex flex-col space-y-4 w-full max-w-md px-4 sm:px-6 md:px-8 mx-auto mt-4 sm:mt-6 md:mt-8"
+>
 	<!-- Guess Input and Button -->
 	<div class="flex w-full space-x-2">
 		<!-- Guess Input Field -->

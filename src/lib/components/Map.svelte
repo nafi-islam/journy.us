@@ -9,10 +9,6 @@
 
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
 
-	// WIP:
-	// - Add margin padding for mobile
-	// - Glow needs to be on map
-
 	const geoUrl = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json';
 
 	type StateFeature = Feature<Geometry, { name: string }>;
