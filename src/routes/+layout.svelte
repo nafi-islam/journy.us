@@ -78,7 +78,7 @@
 <svelte:head>
 	<title>journy.us</title>
 	<link rel="icon" href="/map-emoji.png" />
-	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+	<!-- <link rel="apple-touch-icon" href="/apple-touch-icon.png" /> -->
 
 	<!-- Open Graph Meta Tags (for Facebook, LinkedIn) -->
 	<meta property="og:title" content="journy.us" />
