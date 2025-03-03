@@ -9,14 +9,9 @@
 
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
 
-	/*
-	TODO
-		- Make the map more scalable (for mobile and bigger screens)
-		- To complete, look into Tailwind and D3 styling techniques
-		- viewBox, w-full h-auto, dynamic projection, etc.
-	*/
-
-	// Note: to avoid map delay, added isMapLoading, forceLoading, loadingDelay, and setTimeout
+	// WIP:
+	// - Add margin padding for mobile
+	// - Glow needs to be on map
 
 	const geoUrl = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json';
 
@@ -101,24 +96,23 @@
 
 <style lang="postcss">
 	.map-container {
-		position: relative;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		width: 550px;
-		height: 350px;
-		margin: auto;
+		width: 100%;
+		max-width: 550px; /* Keep desktop size */
+		height: auto;
+		aspect-ratio: 16 / 10; /* Maintains aspect ratio */
+	}
+
+	svg {
+		width: 100%;
+		height: auto;
 	}
 
 	.map-loader {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		z-index: 10;
+		width: 100%;
+		height: 100%;
 	}
 
 	.map-glow {
@@ -160,10 +154,18 @@
 		}
 	}
 
-	svg {
-		position: relative;
-		z-index: 1;
-		display: block;
-		margin: auto;
+	@media (max-width: 600px) {
+		.map-container {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			min-height: 250px; /* Ensures enough space for loader */
+		}
+
+		.map-loader {
+			position: static; /* Prevents absolute positioning */
+			width: 100%;
+			height: 100%;
+		}
 	}
 </style>
