@@ -1,6 +1,13 @@
 <script lang="ts">
 	import '../app.postcss';
-	import { AppShell, AppBar, Modal } from '@skeletonlabs/skeleton';
+	import {
+		AppShell,
+		AppBar,
+		Modal,
+		modeOsPrefers,
+		modeCurrent,
+		modeUserPrefers
+	} from '@skeletonlabs/skeleton';
 	import { getModalStore, initializeStores, LightSwitch } from '@skeletonlabs/skeleton';
 	import type { ModalSettings } from '@skeletonlabs/skeleton';
 
@@ -14,6 +21,27 @@
 	import { QuestionMark } from 'tabler-icons-svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import HelpModalContent from '$lib/components/HelpModalContent.svelte';
+
+	import { autoModeWatcher } from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
+
+	// read docs on getting user os preference for theme, too lazy right now
+
+	onMount(() => {
+		autoModeWatcher();
+
+		modeOsPrefers.subscribe((value) => {
+			console.log('modeOsPrefers', value);
+		});
+
+		modeUserPrefers.subscribe((value) => {
+			console.log('modeUserPrefers', value);
+		});
+
+		modeCurrent.subscribe((value) => {
+			console.log('modeCurrent', value);
+		});
+	});
 
 	initializeStores();
 
@@ -56,6 +84,8 @@
 	rel="stylesheet"
 	href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap"
 />
+
+<!-- <svelte:head>{@html '<script>(' + autoModeWatcher.toString() + ')();</script>'}</svelte:head> -->
 
 <Modal />
 
