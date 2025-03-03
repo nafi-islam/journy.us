@@ -77,7 +77,7 @@
 
 <svelte:head>
 	<title>journy.us</title>
-	<link rel="icon" href="%sveltekit.assets%/map.png" />
+	<link rel="icon" href="/map.png" />
 
 	<!-- Open Graph Meta Tags (for Facebook, LinkedIn) -->
 	<meta property="og:title" content="journy.us" />
@@ -85,6 +85,8 @@
 	<meta property="og:url" content="https://www.journy.us/" />
 	<meta property="og:image" content="https://www.journy.us/map.png" />
 	<meta property="og:type" content="website" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
 
 	<!-- Twitter Card Meta Tags -->
 	<meta name="twitter:card" content="summary_large_image" />
