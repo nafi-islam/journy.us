@@ -61,7 +61,7 @@
 			</svelte:fragment>
 			<svelte:fragment slot="content">
 				<p class="text-sm text-surface-700 dark:text-surface-300">
-					Have suggestions or found a bug? Let us know by filling out this <a
+					Have suggestions or found a bug? Let me know by filling out this <a
 						href="https://nafiislam.com"
 						target="_blank"
 						rel="noopener noreferrer"
