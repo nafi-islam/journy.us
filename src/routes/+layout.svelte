@@ -15,10 +15,11 @@
 	import { Toast } from '@skeletonlabs/skeleton';
 	import { autoModeWatcher } from '@skeletonlabs/skeleton';
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
-	import { Map2 } from 'tabler-icons-svelte';
+	import { Map2, Settings } from 'tabler-icons-svelte';
 	import { QuestionMark } from 'tabler-icons-svelte';
 	import Footer from '$lib/components/Footer.svelte';
-	import HelpModalContent from '$lib/components/HelpModalContent.svelte';
+	import HelpModal from '$lib/components/HelpModal.svelte';
+	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import { dev } from '$app/environment';
 	import { injectAnalytics } from '@vercel/analytics/sveltekit';
 	import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
@@ -56,7 +57,17 @@
 		const modal: ModalSettings = {
 			type: 'component',
 			component: {
-				ref: HelpModalContent
+				ref: HelpModal
+			}
+		};
+		modalStore.trigger(modal);
+	}
+
+	function settingModalToggle() {
+		const modal: ModalSettings = {
+			type: 'component',
+			component: {
+				ref: SettingsModal
 			}
 		};
 		modalStore.trigger(modal);
@@ -122,13 +133,13 @@
 					>beta</span
 				>
 
-				<!-- Dark/Light Mode Toggle -->
-				<LightSwitch
-					class="transition duration-200"
-					bgLight="bg-[#FBE7D1]"
-					bgDark="bg-[#73420D]"
-					rounded="rounded-full"
-				/>
+				<!-- Settings Button -->
+				<button
+					class="btn-icon btn-sm variant-ghost-surface flex items-center justify-center w-10 h-10 p-2 bg-transparent"
+					on:click={settingModalToggle}
+				>
+					<Settings class="w-4 h-4" />
+				</button>
 
 				<!-- Help Button -->
 				<button

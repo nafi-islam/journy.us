@@ -11,3 +11,4 @@ export const isLoading = writable(true);
 export const mapLoaded = writable(false);
 export const statesLoaded = writable(false);
 export const showPlayAgain = writable(false);
+export const practiceMode = writable(false);

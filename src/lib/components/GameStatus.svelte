@@ -28,11 +28,11 @@
 			// console.log('confetti triggered');
 		}
 		setTimeout(() => {
-			openResultModal();
+			resultModalToggle();
 		}, 500);
 	}
 
-	function openResultModal() {
+	function resultModalToggle() {
 		const modal: ModalSettings = {
 			type: 'component',
 			component: {
