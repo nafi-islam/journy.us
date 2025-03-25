@@ -5,7 +5,14 @@
 	import { json } from 'd3-fetch';
 	import { feature } from 'topojson-client';
 	import type { FeatureCollection, Feature, Geometry } from 'geojson';
-	import { startState, targetState, guessedStates, mapLoaded, isLoading } from '../stores';
+	import {
+		startState,
+		targetState,
+		guessedStates,
+		mapLoaded,
+		isLoading,
+		practiceMode
+	} from '../stores';
 	import { checkLoadingComplete } from '$lib/utils';
 
 	const geoUrl = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json';
@@ -77,12 +84,14 @@
 		<svg width="550" height="350" viewBox="0 0 960 600">
 			<g>
 				{#each states as state}
-					<path
-						d={pathGenerator(state)}
-						fill={getFillColor(state.properties.name)}
-						stroke="#FFF"
-						class="transition duration-200 ease-in-out hover:stroke-2 hover:stroke-black"
-					/>
+					{#if $practiceMode || state.properties.name === $startState || state.properties.name === $targetState || guessed.includes(state.properties.name)}
+						<path
+							d={pathGenerator(state)}
+							fill={getFillColor(state.properties.name)}
+							stroke="#FFF"
+							class="transition duration-200 ease-in-out hover:stroke-2 hover:stroke-black"
+						/>
+					{/if}
 				{/each}
 			</g>
 		</svg>
