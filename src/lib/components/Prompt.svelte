@@ -14,26 +14,26 @@
 	} from '../stores';
 	import { checkLoadingComplete, getRandomStatePair } from '$lib/utils';
 
-	function setDailyChallenge() {
+	// Load today's challenge from static JSON
+	async function setDailyChallenge() {
 		const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-		console.log('today’s date:', today);
 
-		// Get the last stored daily challenge date
-		const lastDailyDate = $dailyDate;
+		try {
+			const res = await fetch('/validChallenges.json');
+			const challenges = await res.json();
 
-		// If no challenge exists for today, generate a new one
-		if (lastDailyDate !== today) {
-			const { start, target, length } = getRandomStatePair();
-			dailyStartState.set(start);
-			dailyTargetState.set(target);
-			dailyPathLength.set(length);
-			dailyDate.set(today);
+			const todayChallenge = challenges[today];
+
+			if (todayChallenge) {
+				startState.set(todayChallenge.dailyStartState);
+				targetState.set(todayChallenge.dailyTargetState);
+				pathLength.set(todayChallenge.dailyPathLength);
+			} else {
+				console.error(`No challenge found for ${today}`);
+			}
+		} catch (error) {
+			console.error('Failed to load validChallenges.json:', error);
 		}
-
-		// Set the states for the daily challenge
-		startState.set($dailyStartState);
-		targetState.set($dailyTargetState);
-		pathLength.set($dailyPathLength);
 	}
 
 	// Generate new practice mode states when toggled
