@@ -7,10 +7,9 @@
 		statesLoaded,
 		isLoading,
 		practiceMode,
-		dailyStartState,
-		dailyTargetState,
-		dailyPathLength,
-		dailyDate
+		guessedStates,
+		guessCount,
+		showPlayAgain
 	} from '../stores';
 	import { checkLoadingComplete, getRandomStatePair } from '$lib/utils';
 
@@ -58,8 +57,14 @@
 
 	// Watch for mode changes and update the states accordingly
 	$: if ($practiceMode) {
+		guessedStates.set([]);
+		guessCount.set(0);
+		showPlayAgain.set(false);
 		setPracticeMode();
 	} else {
+		guessedStates.set([]);
+		guessCount.set(0);
+		showPlayAgain.set(false);
 		setDailyChallenge();
 	}
 </script>
