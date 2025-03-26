@@ -15,7 +15,7 @@
 	import { Toast } from '@skeletonlabs/skeleton';
 	import { autoModeWatcher } from '@skeletonlabs/skeleton';
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
-	import { Map2, Settings } from 'tabler-icons-svelte';
+	import { ChartBar, Map2, Settings } from 'tabler-icons-svelte';
 	import { QuestionMark } from 'tabler-icons-svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import HelpModal from '$lib/components/HelpModal.svelte';
@@ -23,6 +23,7 @@
 	import { dev } from '$app/environment';
 	import { injectAnalytics } from '@vercel/analytics/sveltekit';
 	import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
+	import DailyChallengeModal from '$lib/components/DailyChallengeModal.svelte';
 
 	injectAnalytics({ mode: dev ? 'development' : 'production' });
 
@@ -68,6 +69,16 @@
 			type: 'component',
 			component: {
 				ref: SettingsModal
+			}
+		};
+		modalStore.trigger(modal);
+	}
+
+	function dailyChallengeModalToggle() {
+		const modal: ModalSettings = {
+			type: 'component',
+			component: {
+				ref: DailyChallengeModal
 			}
 		};
 		modalStore.trigger(modal);
@@ -132,6 +143,14 @@
 				<span class="chip chip-text border border-current px-2 py-1 rounded-full bg-transparent"
 					>beta</span
 				>
+
+				<!-- Daily Challenge Button -->
+				<button
+					class="btn-icon btn-sm variant-ghost-surface flex items-center justify-center w-10 h-10 p-2 bg-transparent"
+					on:click={dailyChallengeModalToggle}
+				>
+					<ChartBar class="w-4 h-4" />
+				</button>
 
 				<!-- Settings Button -->
 				<button

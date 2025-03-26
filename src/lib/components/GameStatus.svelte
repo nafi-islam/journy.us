@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import type { ModalSettings } from '@skeletonlabs/skeleton';
-	import ResultsModal from '$lib/components/ResultsModal.svelte';
+	import PracticeModal from '$lib/components/PracticeModal.svelte';
 	import { startState, targetState } from '../stores';
 	import { gameStatus } from '../utils';
 
@@ -36,7 +36,7 @@
 		const modal: ModalSettings = {
 			type: 'component',
 			component: {
-				ref: ResultsModal,
+				ref: PracticeModal,
 				props: {
 					startState: $startState,
 					targetState: $targetState,

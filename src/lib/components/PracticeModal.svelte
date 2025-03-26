@@ -9,7 +9,7 @@
 	const guessedRoute = $guessedStates.length > 0 ? $guessedStates.join(' ➡️ ') : 'No route guessed';
 	const idealRoute = $gameStatus.message.match(/Optimal path: (.*)/)?.[1] || 'N/A';
 
-	function closeModal() {
+	function practiceModalToggle() {
 		modalStore.close();
 		showPlayAgain.set(true);
 	}
@@ -42,7 +42,7 @@
 
 	<!-- Button Section -->
 	<div class="modal-footer">
-		<button class="btn variant-ghost-surface" on:click={closeModal}>Close</button>
+		<button class="btn variant-ghost-surface" on:click={practiceModalToggle}>Close</button>
 	</div>
 </div>
 
