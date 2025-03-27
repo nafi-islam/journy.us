@@ -1,18 +1,35 @@
 <script lang="ts">
 	import { getModalStore } from '@skeletonlabs/skeleton';
-	import { startState, targetState, guessedStates, showPractice } from '../stores';
-	import { gameStatus } from '../utils';
+	import {
+		startState,
+		targetState,
+		guessedStates,
+		showPractice,
+		dailyShortestPath,
+		dailyStartState,
+		dailyTargetState,
+		practiceMode
+	} from '../stores';
 	import { loadStats } from '$lib/statistics';
 	import { onMount } from 'svelte';
 	import { ChartBar } from 'tabler-icons-svelte';
 
 	const modalStore = getModalStore();
 
+	let shortestPath: string[] = [];
+	$: shortestPath = $dailyShortestPath;
+
 	// Assuming validChallenges.json starts on 2025-03-26
 	const challengeStartDate = new Date('2025-03-26');
 	const today = new Date();
 	const challengeNumber =
 		Math.floor((today.getTime() - challengeStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+	function enterPracticeMode() {
+		practiceMode.set(true);
+		showPractice.set(false);
+		modalStore.close();
+	}
 
 	function DailyChallengeModalToggle() {
 		modalStore.close();
@@ -81,17 +98,20 @@
 		<!-- Win Message -->
 		{#if statsForToday.won}
 			<p class="text-center mb-4">
-				Success! You got from <strong>{$startState}</strong> to <strong>{$targetState}</strong> in
+				Success! You got from <strong>{$dailyStartState}</strong> to
+				<strong>{$dailyTargetState}</strong>
+				in
 				<strong>{statsForToday.guessCount}</strong> guesses.<br />
 				The shortest solution was <strong>{statsForToday.shortestPathLength}</strong> guesses.
 			</p>
 		{/if}
 
 		<!-- Lose Message -->
-		{#if !statsForToday.won}
+		{#if shortestPath.length && !statsForToday?.won}
 			<p class="text-center mb-4">
-				<strong>{statsForToday.guessCount}</strong> guesses.<br />
 				The shortest solution was <strong>{statsForToday.shortestPathLength}</strong> guesses.
+				<br />
+				{shortestPath.join(' ➡️ ')}
 			</p>
 		{/if}
 	{/if}
@@ -131,6 +151,20 @@
 				</div>
 			{/each}
 		</div>
+	</div>
+
+	<!-- Practice CTA -->
+	<div class="text-center mt-2">
+		<p>
+			Want to practice more?
+			<button
+				on:click={enterPracticeMode}
+				type="button"
+				class="underline hover:text-primary-500 dark:hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-300 rounded"
+			>
+				Click here!
+			</button>
+		</p>
 	</div>
 
 	<!-- Footer -->

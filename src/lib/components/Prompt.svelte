@@ -10,7 +10,10 @@
 		guessedStates,
 		guessCount,
 		showPlayAgain,
-		dailyPathLength
+		dailyPathLength,
+		dailyShortestPath,
+		dailyTargetState,
+		dailyStartState
 	} from '../stores';
 	import { checkLoadingComplete, getRandomStatePair } from '$lib/utils';
 
@@ -28,7 +31,11 @@
 				startState.set(todayChallenge.dailyStartState);
 				targetState.set(todayChallenge.dailyTargetState);
 				pathLength.set(todayChallenge.dailyPathLength);
-				dailyPathLength.set(todayChallenge.dailyPathLength); // avoid re-fetching json
+
+				dailyStartState.set(todayChallenge.dailyStartState); // Avoid refetching JSON
+				dailyTargetState.set(todayChallenge.dailyTargetState);
+				dailyPathLength.set(todayChallenge.dailyPathLength);
+				dailyShortestPath.set(todayChallenge.shortestPath);
 			} else {
 				console.error(`No challenge found for ${today}`);
 			}
