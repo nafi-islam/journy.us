@@ -9,7 +9,8 @@
 		practiceMode,
 		guessedStates,
 		guessCount,
-		showPlayAgain
+		showPlayAgain,
+		dailyPathLength
 	} from '../stores';
 	import { checkLoadingComplete, getRandomStatePair } from '$lib/utils';
 
@@ -27,6 +28,7 @@
 				startState.set(todayChallenge.dailyStartState);
 				targetState.set(todayChallenge.dailyTargetState);
 				pathLength.set(todayChallenge.dailyPathLength);
+				dailyPathLength.set(todayChallenge.dailyPathLength); // avoid re-fetching json
 			} else {
 				console.error(`No challenge found for ${today}`);
 			}

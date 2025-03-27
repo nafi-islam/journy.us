@@ -8,10 +8,25 @@
 		initialGuessesRemaining,
 		startState,
 		targetState,
-		showPlayAgain
+		showPlayAgain,
+		practiceMode,
+		showPractice
 	} from '../stores';
 	import { statesGraph } from '../statesGraph';
 	import { formatStateName, resetGame } from '../utils';
+
+	$: hasPlayedToday = $showPractice && !$practiceMode;
+
+	console.log('hasPlayedToday:', hasPlayedToday);
+
+	function enterPracticeMode() {
+		practiceMode.set(true);
+		resetGame(); // optional: regenerate new prompt
+		// console.group('Practice Mode Logs'); // instagram reels taught me this, poggers
+		// console.log('user completed challenge and clicked practice');
+		// console.log('practice mode:', $practiceMode); // should be true
+		// console.groupEnd();
+	}
 
 	const toastStore = getToastStore();
 
@@ -103,8 +118,10 @@
 			class="btn bg-primary-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-primary-800"
 			on:click={() => {
 				if ($showPlayAgain) {
-					showPlayAgain.set(false); // Reset state before calling resetGame
+					showPlayAgain.set(false);
 					resetGame();
+				} else if (!$practiceMode && hasPlayedToday) {
+					enterPracticeMode();
 				} else {
 					submitGuess();
 				}
@@ -113,6 +130,8 @@
 		>
 			{#if $showPlayAgain}
 				Play Again
+			{:else if !$practiceMode && hasPlayedToday}
+				Practice
 			{:else}
 				Guess ({Math.min($guessCount + 1, $initialGuessesRemaining)} / {$initialGuessesRemaining})
 			{/if}

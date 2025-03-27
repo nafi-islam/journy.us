@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { getModalStore } from '@skeletonlabs/skeleton';
-	import { startState, targetState, guessedStates } from '../stores';
+	import { startState, targetState, guessedStates, showPractice } from '../stores';
 	import { gameStatus } from '../utils';
+	import { loadStats } from '$lib/statistics';
+	import { onMount } from 'svelte';
 	import { ChartBar } from 'tabler-icons-svelte';
 
 	const modalStore = getModalStore();
@@ -12,18 +14,52 @@
 	const challengeNumber =
 		Math.floor((today.getTime() - challengeStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
-	function closeModal() {
+	function DailyChallengeModalToggle() {
 		modalStore.close();
+		showPractice.set(true);
 	}
 
-	// Example stats (could be fetched from localStorage)
-	const stats = {
-		gamesPlayed: 17,
-		winRate: 82,
-		currentStreak: 3,
-		maxStreak: 5,
-		guessDistribution: [0, 1, 3, 6, 5, 2] // guess in n+1 attempts (e.g. 1 guess, 2 guesses, etc.)
+	let statsForToday: { won: any; guessCount: any; shortestPathLength: any } | null = null;
+	let aggregateStats = {
+		gamesPlayed: 0,
+		winRate: 0,
+		currentStreak: 0,
+		maxStreak: 0,
+		guessDistribution: [0, 0, 0, 0, 0, 0]
 	};
+
+	onMount(() => {
+		const today = new Date().toISOString().split('T')[0];
+		const stats = loadStats();
+
+		// Show only if played today
+		statsForToday = stats[today];
+
+		// Compute all-time stats
+		const dates = Object.keys(stats).sort();
+		let streak = 0;
+		let maxStreak = 0;
+		let winCount = 0;
+
+		for (const date of dates) {
+			const entry = stats[date];
+			if (!entry) continue;
+
+			aggregateStats.gamesPlayed++;
+			if (entry.won) {
+				winCount++;
+				streak++;
+				aggregateStats.guessDistribution[entry.guessCount - 1]++;
+			} else {
+				streak = 0;
+			}
+			if (streak > maxStreak) maxStreak = streak;
+		}
+
+		aggregateStats.winRate = Math.round((winCount / aggregateStats.gamesPlayed) * 100);
+		aggregateStats.currentStreak = streak;
+		aggregateStats.maxStreak = maxStreak;
+	});
 </script>
 
 <div class="modal-container p-6 rounded-xl shadow-lg bg-surface-100 dark:bg-surface-800">
@@ -33,32 +69,50 @@
 		<h2 class="font-bold text-2xl text-center">Challenge #{challengeNumber}</h2>
 	</div>
 
-	<!-- Outcome -->
-	<h2 class="text-xl font-semibold text-center mb-4">
-		{#if $gameStatus.status === 'win' || $gameStatus.status === 'sub-win'}
-			🎉 Congratulations!
-		{:else}
-			❌ Better luck next time!
+	{#if statsForToday}
+		<h2 class="text-xl font-semibold text-center mb-4">
+			{#if statsForToday.won}
+				🎉 Congratulations!
+			{:else}
+				❌ Better luck next time!
+			{/if}
+		</h2>
+
+		<!-- Win Message -->
+		{#if statsForToday.won}
+			<p class="text-center mb-4">
+				Success! You got from <strong>{$startState}</strong> to <strong>{$targetState}</strong> in
+				<strong>{statsForToday.guessCount}</strong> guesses.<br />
+				The shortest solution was <strong>{statsForToday.shortestPathLength}</strong> guesses.
+			</p>
 		{/if}
-	</h2>
+
+		<!-- Lose Message -->
+		{#if !statsForToday.won}
+			<p class="text-center mb-4">
+				<strong>{statsForToday.guessCount}</strong> guesses.<br />
+				The shortest solution was <strong>{statsForToday.shortestPathLength}</strong> guesses.
+			</p>
+		{/if}
+	{/if}
 
 	<div class="modal-body">
 		<!-- Stats Overview -->
 		<div class="flex flex-wrap sm:flex-nowrap justify-between text-center mb-6 gap-4">
 			<div class="flex-1">
-				<p class="text-2xl font-bold">{stats.gamesPlayed}</p>
+				<p class="text-2xl font-bold">{aggregateStats.gamesPlayed}</p>
 				<p class="text-sm opacity-70">Played</p>
 			</div>
 			<div class="flex-1">
-				<p class="text-2xl font-bold">{stats.winRate}%</p>
+				<p class="text-2xl font-bold">{aggregateStats.winRate}%</p>
 				<p class="text-sm opacity-70">Win Rate</p>
 			</div>
 			<div class="flex-1">
-				<p class="text-2xl font-bold">{stats.currentStreak}</p>
+				<p class="text-2xl font-bold">{aggregateStats.currentStreak}</p>
 				<p class="text-sm opacity-70">Current Streak</p>
 			</div>
 			<div class="flex-1">
-				<p class="text-2xl font-bold">{stats.maxStreak}</p>
+				<p class="text-2xl font-bold">{aggregateStats.maxStreak}</p>
 				<p class="text-sm opacity-70">Max Streak</p>
 			</div>
 		</div>
@@ -66,7 +120,7 @@
 		<!-- Guess Distribution -->
 		<div class="mb-6">
 			<h4 class="font-semibold mb-2 text-center">Guess Distribution</h4>
-			{#each stats.guessDistribution as count, index}
+			{#each aggregateStats.guessDistribution as count, index}
 				<div class="flex items-center mb-1 gap-2">
 					<span class="text-sm w-6">{index + 1}</span>
 					<div
@@ -81,7 +135,7 @@
 
 	<!-- Footer -->
 	<div class="modal-footer">
-		<button class="btn variant-ghost-surface" on:click={closeModal}>Close</button>
+		<button class="btn variant-ghost-surface" on:click={DailyChallengeModalToggle}>Close</button>
 	</div>
 </div>
 

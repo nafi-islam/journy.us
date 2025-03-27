@@ -11,4 +11,6 @@ export const isLoading = writable(true);
 export const mapLoaded = writable(false);
 export const statesLoaded = writable(false);
 export const showPlayAgain = writable(false); // default to daily challenge
+export const showPractice = writable(false);
 export const practiceMode = writable(false);
+export const dailyPathLength = writable<number>(0);

@@ -2,8 +2,11 @@
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import type { ModalSettings } from '@skeletonlabs/skeleton';
 	import PracticeModal from '$lib/components/PracticeModal.svelte';
-	import { startState, targetState } from '../stores';
+	import DailyChallengeModal from '$lib/components/DailyChallengeModal.svelte';
+	import { loadStats, saveStats } from '$lib/statistics';
+	import { dailyPathLength, guessedStates, practiceMode, startState, targetState } from '../stores';
 	import { gameStatus } from '../utils';
+	import { get } from 'svelte/store';
 
 	const modalStore = getModalStore();
 
@@ -33,10 +36,12 @@
 	}
 
 	function resultModalToggle() {
+		const isPractice = $practiceMode;
+
 		const modal: ModalSettings = {
 			type: 'component',
 			component: {
-				ref: PracticeModal,
+				ref: isPractice ? PracticeModal : DailyChallengeModal,
 				props: {
 					startState: $startState,
 					targetState: $targetState,
@@ -44,6 +49,29 @@
 				}
 			}
 		};
+
 		modalStore.trigger(modal);
+	}
+
+	function recordDailyResult() {
+		const today = new Date().toISOString().split('T')[0];
+		const stats = loadStats();
+
+		stats[today] = {
+			won: $gameStatus.status === 'win' || $gameStatus.status === 'sub-win',
+			guessCount: $guessedStates.length,
+			shortestPathLength: get(dailyPathLength)
+		};
+
+		saveStats(stats);
+	}
+
+	$: if (
+		!$practiceMode &&
+		($gameStatus.status === 'win' ||
+			$gameStatus.status === 'sub-win' ||
+			$gameStatus.status === 'lose')
+	) {
+		recordDailyResult();
 	}
 </script>
