@@ -13,7 +13,8 @@
 		showPractice
 	} from '../stores';
 	import { statesGraph } from '../statesGraph';
-	import { formatStateName, resetGame } from '../utils';
+	import { formatStateName, gameStatus, resetGame } from '../utils';
+	import { get } from 'svelte/store';
 
 	$: hasPlayedToday = $showPractice && !$practiceMode;
 
@@ -21,6 +22,7 @@
 
 	function enterPracticeMode() {
 		practiceMode.set(true);
+		console.log('practice mode:', $practiceMode);
 		resetGame(); // optional: regenerate new prompt
 		// console.group('Practice Mode Logs'); // instagram reels taught me this, poggers
 		// console.log('user completed challenge and clicked practice');
@@ -59,6 +61,21 @@
 		// console.log('toast message', toast.message);
 	}
 
+	function saveDailyProgress() {
+		if (get(practiceMode)) return;
+
+		const today = new Date().toISOString().split('T')[0];
+		const stats = JSON.parse(localStorage.getItem('journyDailyStats') || '{}');
+
+		stats[today] = {
+			guessedStates: get(guessedStates),
+			guessCount: get(guessCount),
+			won: $gameStatus.status === 'win' || $gameStatus.status === 'sub-win'
+		};
+
+		localStorage.setItem('journyDailyStats', JSON.stringify(stats));
+	}
+
 	// Submit Guess with Validation & Toast Notification
 	function submitGuess() {
 		if (inputPopupError.trim() !== '') {
@@ -79,6 +96,7 @@
 				return guesses;
 			});
 
+			saveDailyProgress();
 			inputPopupError = ''; // Clear input after guessing
 		}
 	}
@@ -117,7 +135,7 @@
 			bind:this={guessButton}
 			class="btn bg-primary-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-primary-800"
 			on:click={() => {
-				if ($showPlayAgain) {
+				if ($showPlayAgain && $practiceMode) {
 					showPlayAgain.set(false);
 					resetGame();
 				} else if (!$practiceMode && hasPlayedToday) {
@@ -131,6 +149,8 @@
 			{#if $showPlayAgain}
 				Play Again
 			{:else if !$practiceMode && hasPlayedToday}
+				Practice
+			{:else if hasPlayedToday}
 				Practice
 			{:else}
 				Guess ({Math.min($guessCount + 1, $initialGuessesRemaining)} / {$initialGuessesRemaining})

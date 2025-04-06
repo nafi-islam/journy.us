@@ -23,3 +23,9 @@ export const dailyStartState = writable<string>('');
 export const dailyTargetState = writable<string>('');
 export const dailyPathLength = writable<number>(0);
 export const dailyShortestPath = writable<string[]>([]);
+
+export const dailyGuessedStates = writable<string[]>([]);
+export const dailyGuessCount = writable<number>(0);
+
+export const modalShownDaily = writable(false);
+export const modalShownPractice = writable(false);

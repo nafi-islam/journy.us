@@ -1,18 +1,17 @@
 <script lang="ts">
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import {
-		startState,
-		targetState,
-		guessedStates,
 		showPractice,
 		dailyShortestPath,
 		dailyStartState,
 		dailyTargetState,
-		practiceMode
+		practiceMode,
+		showPlayAgain
 	} from '../stores';
 	import { loadStats } from '$lib/statistics';
 	import { onMount } from 'svelte';
 	import { ChartBar } from 'tabler-icons-svelte';
+	import { resetGame } from '$lib/utils';
 
 	const modalStore = getModalStore();
 
@@ -27,13 +26,17 @@
 
 	function enterPracticeMode() {
 		practiceMode.set(true);
+		//console.log('practice mode:', $practiceMode);
 		showPractice.set(false);
+		showPlayAgain.set(false);
+		resetGame();
 		modalStore.close();
 	}
 
 	function DailyChallengeModalToggle() {
 		modalStore.close();
 		showPractice.set(true);
+		//console.log('daily challenge modal triggered');
 	}
 
 	let statsForToday: { won: any; guessCount: any; shortestPathLength: any } | null = null;
@@ -42,7 +45,7 @@
 		winRate: 0,
 		currentStreak: 0,
 		maxStreak: 0,
-		guessDistribution: [0, 0, 0, 0, 0, 0]
+		guessDistribution: Array(8).fill(0)
 	};
 
 	onMount(() => {
@@ -63,13 +66,19 @@
 			if (!entry) continue;
 
 			aggregateStats.gamesPlayed++;
-			if (entry.won) {
+
+			if (entry.won && entry.isDaily) {
 				winCount++;
 				streak++;
-				aggregateStats.guessDistribution[entry.guessCount - 1]++;
+
+				const index = entry.guessCount - 1;
+				if (index >= 0 && index < aggregateStats.guessDistribution.length) {
+					aggregateStats.guessDistribution[index]++;
+				}
 			} else {
 				streak = 0;
 			}
+
 			if (streak > maxStreak) maxStreak = streak;
 		}
 

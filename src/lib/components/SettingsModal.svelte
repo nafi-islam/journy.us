@@ -8,7 +8,7 @@
 	// 	practiceMode.update((value) => !value);
 	// }
 
-	$: console.log('practiceMode: ', $practiceMode);
+	//$: console.log('practiceMode: ', $practiceMode);
 </script>
 
 <!-- Settings Modal Content -->

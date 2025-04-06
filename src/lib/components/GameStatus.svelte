@@ -4,7 +4,15 @@
 	import PracticeModal from '$lib/components/PracticeModal.svelte';
 	import DailyChallengeModal from '$lib/components/DailyChallengeModal.svelte';
 	import { loadStats, saveStats } from '$lib/statistics';
-	import { dailyPathLength, guessedStates, practiceMode, startState, targetState } from '../stores';
+	import {
+		dailyPathLength,
+		guessedStates,
+		modalShownDaily,
+		modalShownPractice,
+		practiceMode,
+		startState,
+		targetState
+	} from '../stores';
 	import { gameStatus } from '../utils';
 	import { get } from 'svelte/store';
 
@@ -21,18 +29,28 @@
 	}
 
 	// Function to open the result modal when the game ends
-	$: if (
-		$gameStatus.status === 'win' ||
-		$gameStatus.status === 'sub-win' ||
-		$gameStatus.status === 'lose'
-	) {
-		if ($gameStatus.status === 'win' || $gameStatus.status === 'sub-win') {
-			triggerConfetti();
-			// console.log('confetti triggered');
+	$: {
+		if (
+			($gameStatus.status === 'win' ||
+				$gameStatus.status === 'sub-win' ||
+				$gameStatus.status === 'lose') &&
+			!get($practiceMode ? modalShownPractice : modalShownDaily)
+		) {
+			if ($practiceMode) {
+				modalShownPractice.set(true);
+			} else {
+				modalShownDaily.set(true);
+			}
+
+			if ($gameStatus.status === 'win' || $gameStatus.status === 'sub-win') {
+				triggerConfetti();
+				// console.log('confetti triggered');
+			}
+
+			setTimeout(() => {
+				resultModalToggle();
+			}, 500);
 		}
-		setTimeout(() => {
-			resultModalToggle();
-		}, 500);
 	}
 
 	function resultModalToggle() {
@@ -60,7 +78,8 @@
 		stats[today] = {
 			won: $gameStatus.status === 'win' || $gameStatus.status === 'sub-win',
 			guessCount: $guessedStates.length,
-			shortestPathLength: get(dailyPathLength)
+			shortestPathLength: get(dailyPathLength),
+			isDaily: true
 		};
 
 		saveStats(stats);

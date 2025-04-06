@@ -8,7 +8,8 @@ import {
 	initialGuessesRemaining,
 	isLoading,
 	mapLoaded,
-	statesLoaded
+	statesLoaded,
+	modalShownPractice
 } from './stores';
 
 let loadingDelayApplied = false;
@@ -72,6 +73,10 @@ export function resetGame() {
 	startState.set(start);
 	targetState.set(target);
 	initialGuessesRemaining.set(length + 3);
+
+	//console.log('modalShownPractice b:', get(modalShownPractice));
+	modalShownPractice.set(false);
+	//console.log('modalShownPractice a:', get(modalShownPractice));
 
 	// console.log('Modal closed play again button clicked (utils)');
 
