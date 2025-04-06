@@ -19,9 +19,13 @@
 	const modalStore = getModalStore();
 
 	// Function to trigger confetti when the user wins
+	let cachedConfetti: any;
+
 	async function triggerConfetti() {
-		const confetti = (await import('canvas-confetti')).default; // Dynamically import
-		confetti({
+		if (!cachedConfetti) {
+			cachedConfetti = (await import('canvas-confetti')).default;
+		}
+		cachedConfetti({
 			particleCount: 100,
 			spread: 70,
 			origin: { y: 0.8 }

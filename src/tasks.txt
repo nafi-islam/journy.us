@@ -1,0 +1,30 @@
+text file to remind me of what I could and need to do:
+
+need:
+* lol not a need but i like, vibrate phone when confetti bursts
+
+could:
+* replace if (($gameStatus.status === 'win' || ...) && !modalShown) with:
+    - $: shouldShowModal = (
+	    ($gameStatus.status === 'win' || $gameStatus.status === 'sub-win' || $gameStatus.status === 'lose') &&
+	    !get($practiceMode ? modalShownPractice : modalShownDaily)
+    );
+
+    $: if (shouldShowModal) {
+        ...
+    }
+
+nitpicks:
+* condense recordDailyResult() and saveDailyProgress functions
+
+* replace $gameStatus.status === 'win' || $gameStatus.status === 'sub-win' || ... with:
+    - an enum: export const GameStatusTypes = {
+        WIN: 'win', 
+        SUB_WIN: 'sub-win',
+        LOSE: 'lose',
+        PLAYING: 'playing',
+        WAITING: 'waiting',
+        ERROR: 'error'
+    };
+    - usage: $gameStatus.status === GameStatusTypes.WIN
+

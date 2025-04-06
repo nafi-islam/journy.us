@@ -15,9 +15,6 @@
 
 	const modalStore = getModalStore();
 
-	let shortestPath: string[] = [];
-	$: shortestPath = $dailyShortestPath;
-
 	// Assuming validChallenges.json starts on 2025-03-26
 	const challengeStartDate = new Date('2025-03-26');
 	const today = new Date();
@@ -116,11 +113,11 @@
 		{/if}
 
 		<!-- Lose Message -->
-		{#if shortestPath.length && !statsForToday?.won}
+		{#if $dailyShortestPath.length && !statsForToday?.won}
 			<p class="text-center mb-4">
 				The shortest solution was <strong>{statsForToday.shortestPathLength}</strong> guesses.
 				<br />
-				{shortestPath.join(' ➡️ ')}
+				{$dailyShortestPath.join(' ➡️ ')}
 			</p>
 		{/if}
 	{/if}
