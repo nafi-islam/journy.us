@@ -82,6 +82,13 @@
 	}
 
 	async function loadDailyChallengeAndProgress() {
+		// sets practice button when switching between practice and daily mode
+		const today = new Date().toISOString().split('T')[0];
+		const stats = JSON.parse(localStorage.getItem('journyDailyStats') || '{}');
+
+		const todayProgress = stats[today];
+		showPractice.set(!!todayProgress);
+
 		await setDailyChallenge();
 		restoreDailyProgress();
 
@@ -113,7 +120,7 @@
 			guessedStates.set(todayProgress.guessedStates || []);
 			guessCount.set(todayProgress.guessCount || 0);
 
-			showPractice.set(todayProgress.won || false);
+			//showPractice.set(todayProgress.won || false);
 		}
 	}
 

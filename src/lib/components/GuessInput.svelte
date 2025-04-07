@@ -14,11 +14,14 @@
 	} from '../stores';
 	import { statesGraph } from '../statesGraph';
 	import { formatStateName, gameStatus, resetGame } from '../utils';
-	import { get } from 'svelte/store';
+	import { derived, get } from 'svelte/store';
 
-	$: hasPlayedToday = $showPractice && !$practiceMode;
+	// $: hasPlayedToday = $showPractice && !$practiceMode;
 
-	console.log('hasPlayedToday:', hasPlayedToday);
+	const hasPlayedToday = derived(
+		[showPractice, practiceMode],
+		([$showPractice, $practiceMode]) => $showPractice && !$practiceMode
+	);
 
 	function enterPracticeMode() {
 		practiceMode.set(true);
@@ -138,7 +141,7 @@
 				if ($showPlayAgain && $practiceMode) {
 					showPlayAgain.set(false);
 					resetGame();
-				} else if (!$practiceMode && hasPlayedToday) {
+				} else if (!$practiceMode && get(hasPlayedToday)) {
 					enterPracticeMode();
 				} else {
 					submitGuess();
@@ -146,11 +149,12 @@
 			}}
 			tabindex="0"
 		>
+			<!-- Using $hasPlayedToday vs get(hasPlayedToday) creates a breaking bug -->
 			{#if $showPlayAgain}
 				Play Again
-			{:else if !$practiceMode && hasPlayedToday}
+			{:else if !$practiceMode && get(hasPlayedToday)}
 				Practice
-			{:else if hasPlayedToday}
+			{:else if $hasPlayedToday}
 				Practice
 			{:else}
 				Guess ({Math.min($guessCount + 1, $initialGuessesRemaining)} / {$initialGuessesRemaining})

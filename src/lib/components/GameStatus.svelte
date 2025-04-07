@@ -10,6 +10,7 @@
 		modalShownDaily,
 		modalShownPractice,
 		practiceMode,
+		showPractice,
 		startState,
 		targetState
 	} from '../stores';
@@ -44,6 +45,7 @@
 				modalShownPractice.set(true);
 			} else {
 				modalShownDaily.set(true);
+				showPractice.set(true); // makes sure that hasPlayedToday evaluates correctly ---> button becomes practice after playing (even if user escapes or clicks out of the modal)
 			}
 
 			if ($gameStatus.status === 'win' || $gameStatus.status === 'sub-win') {
