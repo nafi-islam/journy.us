@@ -2,6 +2,17 @@
 	import { Accordion, AccordionItem, getModalStore } from '@skeletonlabs/skeleton';
 
 	const modalStore = getModalStore();
+
+	const patchNotes = [
+		{
+			date: 'april 7th, 2025',
+			description: 'added a daily challenge mode, user stats, guess guide, and share feature'
+		},
+		{
+			date: 'march 3rd, 2025',
+			description: 'initial public release of journy 🎉'
+		}
+	];
 </script>
 
 <!-- Help Modal Content -->
@@ -92,6 +103,22 @@
 						class="underline hover:text-primary-500 dark:hover:text-primary-500">email!</a
 					>
 				</p>
+			</svelte:fragment>
+		</AccordionItem>
+
+		<!-- Patch Notes Section -->
+		<AccordionItem>
+			<svelte:fragment slot="summary">
+				<p class="font-bold">📦 Patch Notes</p>
+			</svelte:fragment>
+			<svelte:fragment slot="content">
+				<ul class="list-disc pl-5 text-sm space-y-1 text-surface-700 dark:text-surface-300">
+					{#each patchNotes as note}
+						<li>
+							<strong>{note.date}</strong> – {note.description}
+						</li>
+					{/each}
+				</ul>
 			</svelte:fragment>
 		</AccordionItem>
 	</Accordion>
