@@ -20,9 +20,33 @@
 	</div>
 
 	<!-- Accordion for Credits & Feedback -->
+
 	<Accordion class="card p-4 text-token shadow-md bg-surface-100 dark:bg-surface-800">
-		<!-- Credits Section -->
+		<!-- Guess Guide Section -->
 		<AccordionItem open>
+			<svelte:fragment slot="summary">
+				<p class="font-bold">🏆 Guess Guide</p>
+			</svelte:fragment>
+			<svelte:fragment slot="content">
+				<ul class="text-sm space-y-2 text-surface-700 dark:text-surface-300">
+					<li>
+						<span class="font-bold">🟩</span>
+						This state is part of a possible shortest path from start to target.
+					</li>
+					<li>
+						<span class="font-bold">🟧</span>
+						This state is connected to a state on the shortest path.
+					</li>
+					<li>
+						<span class="font-bold">🟥</span>
+						This state is not connected and is out of the way.
+					</li>
+				</ul>
+			</svelte:fragment>
+		</AccordionItem>
+
+		<!-- Credits Section -->
+		<AccordionItem>
 			<svelte:fragment slot="summary">
 				<p class="font-bold">🎭 Credits</p>
 			</svelte:fragment>

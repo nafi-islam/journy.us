@@ -1,17 +1,20 @@
 <script lang="ts">
-	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
 	import {
 		showPractice,
 		dailyShortestPath,
 		dailyStartState,
 		dailyTargetState,
 		practiceMode,
-		showPlayAgain
+		showPlayAgain,
+		dailyGuessedStates
 	} from '../stores';
 	import { loadStats } from '$lib/statistics';
 	import { onMount } from 'svelte';
 	import { ChartBar } from 'tabler-icons-svelte';
-	import { resetGame } from '$lib/utils';
+	import { findAllShortestPaths, getGuessScore, resetGame } from '$lib/utils';
+	import { Copy } from 'tabler-icons-svelte';
+	import { get } from 'svelte/store';
 
 	const modalStore = getModalStore();
 
@@ -83,6 +86,49 @@
 		aggregateStats.currentStreak = streak;
 		aggregateStats.maxStreak = maxStreak;
 	});
+
+	// const toastStore = getToastStore();
+
+	let copying = false;
+
+	function copyShareMessage() {
+		if (copying) return;
+		copying = true;
+
+		const challenge = challengeNumber;
+		const guessesUsed = statsForToday?.guessCount ?? 0;
+		//console.log('guessesUsed', guessesUsed);
+		const totalGuesses = (statsForToday?.shortestPathLength ?? 3) + 3;
+		//console.log('totalGuesses', totalGuesses);
+
+		const guessedStates = get(dailyGuessedStates);
+		const start = get(dailyStartState);
+		const target = get(dailyTargetState);
+
+		const allPaths = findAllShortestPaths(start, target);
+
+		const icons = guessedStates
+			.map((guess) => {
+				const score = getGuessScore(guess, allPaths);
+				if (score === 'green') return '🟩';
+				if (score === 'orange') return '🟧';
+				return '🟥';
+			})
+			.join('');
+
+		const message = `journy #${challenge} ${guessesUsed}/${totalGuesses}\n${icons}\nhttps://www.journy.us/`;
+
+		navigator.clipboard.writeText(message).then(() => {
+			// toastStore.trigger({
+			// 	message: '📋 copied to clipboard!',
+			// 	background: 'variant-filled-primary',
+			// 	timeout: 3000
+			// });
+			setTimeout(() => {
+				copying = false;
+			}, 2000); // wait 2s before re-enabling
+		});
+	}
 </script>
 
 <div class="modal-container p-6 rounded-xl shadow-lg bg-surface-100 dark:bg-surface-800">
@@ -173,6 +219,18 @@
 				Click here!
 			</button>
 		</p>
+	</div>
+
+	<!-- Share Button -->
+	<div class="flex justify-center mt-4">
+		<button
+			on:click={copyShareMessage}
+			class="btn bg-primary-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-primary-800 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+			disabled={copying}
+		>
+			<Copy size="16" />
+			<span>{copying ? 'Copied!' : 'Share'}</span>
+		</button>
 	</div>
 
 	<!-- Footer -->
