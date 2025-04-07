@@ -26,11 +26,17 @@
 		if (!cachedConfetti) {
 			cachedConfetti = (await import('canvas-confetti')).default;
 		}
+
 		cachedConfetti({
 			particleCount: 100,
 			spread: 70,
 			origin: { y: 0.8 }
 		});
+
+		// Trigger light haptic feedback on supported devices
+		if (navigator.vibrate) {
+			navigator.vibrate(200);
+		}
 	}
 
 	// Function to open the result modal when the game ends
