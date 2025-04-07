@@ -22,7 +22,7 @@
 
 	function enterPracticeMode() {
 		practiceMode.set(true);
-		console.log('practice mode:', $practiceMode);
+		// console.log('practice mode:', $practiceMode);
 		resetGame(); // optional: regenerate new prompt
 		// console.group('Practice Mode Logs'); // instagram reels taught me this, poggers
 		// console.log('user completed challenge and clicked practice');

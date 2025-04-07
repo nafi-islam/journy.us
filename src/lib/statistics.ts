@@ -14,7 +14,7 @@ export function loadStats(): Record<string, any> {
 export function saveStats(stats: Record<string, any>) {
 	try {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
-		console.log('saveStats:', stats);
+		// console.log('saveStats:', stats);
 	} catch (err) {
 		console.error('Failed to save stats:', err);
 	}

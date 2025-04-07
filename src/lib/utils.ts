@@ -111,7 +111,7 @@ export function findShortestPath(start: string, target: string): string[] | null
 				const newPath = [...path, neighbor];
 
 				if (neighbor === target) {
-					console.log(`Found shortest path: ${newPath.join(' ➡️ ')}`);
+					// console.log(`Found shortest path: ${newPath.join(' ➡️ ')}`);
 					return newPath;
 				}
 
@@ -156,14 +156,15 @@ export function findAllShortestPaths(start: string, target: string): string[][] 
 		}
 	}
 
-	console.group(`findAllShortestPaths`);
-	console.log(`Found ${paths.length} shortest paths from ${start} to ${target}`);
-	console.log('Paths:', paths);
-	console.groupEnd();
+	// console.group(`findAllShortestPaths`);
+	// console.log(`Found ${paths.length} shortest paths from ${start} to ${target}`);
+	// console.log('Paths:', paths);
+	// console.groupEnd();
 
 	return paths;
 }
 
+// Function to check if a guessed state is in any of the shortest paths
 export function isInAnyShortestPath(guess: string, paths: string[][]): boolean {
 	return paths.some((path) => path.includes(guess));
 }
@@ -204,6 +205,7 @@ function isValidAlternativePath(guessed: string[], start: string, target: string
 	return false;
 }
 
+// Function to check if a guessed state is on the path, adjacent, or not at all to any state in any shortest path
 export function getGuessScore(
 	guess: string,
 	shortestPaths: string[][]

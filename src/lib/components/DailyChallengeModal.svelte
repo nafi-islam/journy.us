@@ -150,8 +150,10 @@
 				<div class="flex items-center mb-1 gap-2">
 					<span class="text-sm w-6">{index + 1}</span>
 					<div
-						class="bg-primary-500 h-4 rounded-md transition-all"
-						style="width: {count * 12}px"
+						class="{count === 0
+							? 'bg-surface-300 dark:bg-surface-600 opacity-40'
+							: 'bg-primary-500'} h-4 rounded-md transition-all"
+						style="width: {Math.max(count * 12, 12)}px"
 					></div>
 					<span class="text-xs">{count}</span>
 				</div>
