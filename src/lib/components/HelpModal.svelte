@@ -35,7 +35,7 @@
 					</li>
 					<li>
 						<span class="font-bold">🟧</span>
-						This state is connected to a state on the shortest path.
+						This state is connected to a state on a possible shortest path.
 					</li>
 					<li>
 						<span class="font-bold">🟥</span>
