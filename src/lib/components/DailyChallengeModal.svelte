@@ -19,7 +19,7 @@
 	const modalStore = getModalStore();
 
 	// Assuming validChallenges.json starts on 2025-03-26
-	const challengeStartDate = new Date('2025-03-26');
+	const challengeStartDate = new Date('2025-04-07');
 	const today = new Date();
 	const challengeNumber =
 		Math.floor((today.getTime() - challengeStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
