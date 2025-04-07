@@ -84,6 +84,8 @@ export function resetGame() {
 }
 
 // Function to find the shortest path using BFS
+// Lowkey deprecated since I have a better version in findAllShortestPaths (just use findAllShortestPaths[0])
+// I'll refactor later :P
 export function findShortestPath(start: string, target: string): string[] | null {
 	if (!start || !target) {
 		console.error('findShortestPath called with empty states!');
@@ -109,7 +111,7 @@ export function findShortestPath(start: string, target: string): string[] | null
 				const newPath = [...path, neighbor];
 
 				if (neighbor === target) {
-					// console.log(`Found shortest path: ${newPath.join(' ➡️ ')}`);
+					console.log(`Found shortest path: ${newPath.join(' ➡️ ')}`);
 					return newPath;
 				}
 
@@ -121,6 +123,49 @@ export function findShortestPath(start: string, target: string): string[] | null
 
 	console.error(`No valid path found from ${start} to ${target}`); // won't happen after prompt fix
 	return null;
+}
+
+// Function to find all shortest paths using BFS
+export function findAllShortestPaths(start: string, target: string): string[][] {
+	if (!start || !target) return [];
+
+	const queue: [string, string[]][] = [[start, [start]]];
+	const paths: string[][] = [];
+	const visited = new Map<string, number>();
+	let shortestLength = Infinity;
+
+	while (queue.length > 0) {
+		const [current, path] = queue.shift()!;
+
+		if (path.length > shortestLength) continue;
+
+		if (current === target) {
+			if (path.length < shortestLength) {
+				shortestLength = path.length;
+				paths.length = 0; // reset shorter paths
+			}
+			paths.push(path);
+			continue;
+		}
+
+		for (const neighbor of statesGraph[current] || []) {
+			if (!visited.has(neighbor) || visited.get(neighbor)! >= path.length + 1) {
+				visited.set(neighbor, path.length + 1);
+				queue.push([neighbor, [...path, neighbor]]);
+			}
+		}
+	}
+
+	console.group(`findAllShortestPaths`);
+	console.log(`Found ${paths.length} shortest paths from ${start} to ${target}`);
+	console.log('Paths:', paths);
+	console.groupEnd();
+
+	return paths;
+}
+
+export function isInAnyShortestPath(guess: string, paths: string[][]): boolean {
+	return paths.some((path) => path.includes(guess));
 }
 
 // Function to check if all in-between states in the shortest path exist in guessed states
@@ -157,6 +202,26 @@ function isValidAlternativePath(guessed: string[], start: string, target: string
 
 	// If BFS couldn't reach the target, return false
 	return false;
+}
+
+export function getGuessScore(
+	guess: string,
+	shortestPaths: string[][]
+): 'green' | 'orange' | 'red' {
+	if (!shortestPaths.length) return 'red';
+
+	if (isInAnyShortestPath(guess, shortestPaths)) return 'green';
+
+	// Check if guess is adjacent to any state in any shortest path
+	for (const path of shortestPaths) {
+		for (const state of path) {
+			if (statesGraph[state]?.includes(guess)) {
+				return 'orange';
+			}
+		}
+	}
+
+	return 'red';
 }
 
 // Deriving game status dynamically
