@@ -222,17 +222,19 @@
 		</p>
 	</div>
 
-	<!-- Share Button -->
-	<div class="flex justify-center mt-4">
-		<button
-			on:click={copyShareMessage}
-			class="btn bg-primary-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-primary-800 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-			disabled={copying}
-		>
-			<Copy size="16" />
-			<span>{copying ? 'Copied!' : 'Share'}</span>
-		</button>
-	</div>
+	{#if statsForToday && (statsForToday.won || statsForToday.guessCount > 0)}
+		<!-- Share Button -->
+		<div class="flex justify-center mt-4">
+			<button
+				on:click={copyShareMessage}
+				class="btn bg-primary-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-primary-800 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+				disabled={copying}
+			>
+				<Copy size="16" />
+				<span>{copying ? 'Copied!' : 'Share'}</span>
+			</button>
+		</div>
+	{/if}
 
 	<!-- Footer -->
 	<div class="modal-footer">
