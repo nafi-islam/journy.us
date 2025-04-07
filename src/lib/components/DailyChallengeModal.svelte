@@ -7,7 +7,8 @@
 		dailyTargetState,
 		practiceMode,
 		showPlayAgain,
-		dailyGuessedStates
+		dailyGuessedStates,
+		guessedStates
 	} from '../stores';
 	import { loadStats } from '$lib/statistics';
 	import { onMount } from 'svelte';
@@ -101,13 +102,13 @@
 		const totalGuesses = (statsForToday?.shortestPathLength ?? 3) + 3;
 		//console.log('totalGuesses', totalGuesses);
 
-		const guessedStates = get(dailyGuessedStates);
+		const guessesToShare = get(guessedStates);
 		const start = get(dailyStartState);
 		const target = get(dailyTargetState);
 
 		const allPaths = findAllShortestPaths(start, target);
 
-		const icons = guessedStates
+		const icons = guessesToShare
 			.map((guess) => {
 				const score = getGuessScore(guess, allPaths);
 				if (score === 'green') return '🟩';
