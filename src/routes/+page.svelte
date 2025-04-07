@@ -10,8 +10,6 @@
 	class="container min-h-screen mx-auto flex flex-col items-center justify-start overflow-y-auto"
 >
 	<div class="pt-2 space-y-8 text-center flex flex-col items-center">
-		<h2 class="h2">your journy today is...</h2>
-
 		<!-- Prompt -->
 		<Prompt />
 

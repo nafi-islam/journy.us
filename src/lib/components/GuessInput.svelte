@@ -8,10 +8,30 @@
 		initialGuessesRemaining,
 		startState,
 		targetState,
-		showPlayAgain
+		showPlayAgain,
+		practiceMode,
+		showPractice
 	} from '../stores';
 	import { statesGraph } from '../statesGraph';
-	import { formatStateName, resetGame } from '../utils';
+	import { formatStateName, gameStatus, resetGame } from '../utils';
+	import { derived, get } from 'svelte/store';
+
+	// $: hasPlayedToday = $showPractice && !$practiceMode;
+
+	const hasPlayedToday = derived(
+		[showPractice, practiceMode],
+		([$showPractice, $practiceMode]) => $showPractice && !$practiceMode
+	);
+
+	function enterPracticeMode() {
+		practiceMode.set(true);
+		// console.log('practice mode:', $practiceMode);
+		resetGame(); // optional: regenerate new prompt
+		// console.group('Practice Mode Logs'); // instagram reels taught me this, poggers
+		// console.log('user completed challenge and clicked practice');
+		// console.log('practice mode:', $practiceMode); // should be true
+		// console.groupEnd();
+	}
 
 	const toastStore = getToastStore();
 
@@ -44,6 +64,21 @@
 		// console.log('toast message', toast.message);
 	}
 
+	function saveDailyProgress() {
+		if (get(practiceMode)) return;
+
+		const today = new Date().toISOString().split('T')[0];
+		const stats = JSON.parse(localStorage.getItem('journyDailyStats') || '{}');
+
+		stats[today] = {
+			guessedStates: get(guessedStates),
+			guessCount: get(guessCount),
+			won: $gameStatus.status === 'win' || $gameStatus.status === 'sub-win'
+		};
+
+		localStorage.setItem('journyDailyStats', JSON.stringify(stats));
+	}
+
 	// Submit Guess with Validation & Toast Notification
 	function submitGuess() {
 		if (inputPopupError.trim() !== '') {
@@ -64,6 +99,7 @@
 				return guesses;
 			});
 
+			saveDailyProgress();
 			inputPopupError = ''; // Clear input after guessing
 		}
 	}
@@ -102,17 +138,24 @@
 			bind:this={guessButton}
 			class="btn bg-primary-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-primary-800"
 			on:click={() => {
-				if ($showPlayAgain) {
-					showPlayAgain.set(false); // Reset state before calling resetGame
+				if ($showPlayAgain && $practiceMode) {
+					showPlayAgain.set(false);
 					resetGame();
+				} else if (!$practiceMode && get(hasPlayedToday)) {
+					enterPracticeMode();
 				} else {
 					submitGuess();
 				}
 			}}
 			tabindex="0"
 		>
+			<!-- Using $hasPlayedToday vs get(hasPlayedToday) creates a breaking bug -->
 			{#if $showPlayAgain}
 				Play Again
+			{:else if !$practiceMode && get(hasPlayedToday)}
+				Practice
+			{:else if $hasPlayedToday}
+				Practice
 			{:else}
 				Guess ({Math.min($guessCount + 1, $initialGuessesRemaining)} / {$initialGuessesRemaining})
 			{/if}
