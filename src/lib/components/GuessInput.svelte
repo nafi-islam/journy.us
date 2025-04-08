@@ -73,7 +73,8 @@
 		stats[today] = {
 			guessedStates: get(guessedStates),
 			guessCount: get(guessCount),
-			won: $gameStatus.status === 'win' || $gameStatus.status === 'sub-win'
+			won: $gameStatus.status === 'win' || $gameStatus.status === 'sub-win',
+			status: $gameStatus.status
 		};
 
 		localStorage.setItem('journyDailyStats', JSON.stringify(stats));
