@@ -13,7 +13,7 @@
 	import { loadStats } from '$lib/statistics';
 	import { onMount } from 'svelte';
 	import { ChartBar } from 'tabler-icons-svelte';
-	import { findAllShortestPaths, getGuessScore, resetGame } from '$lib/utils';
+	import { findAllShortestPaths, gameStatus, getGuessScore, resetGame } from '$lib/utils';
 	import { Copy } from 'tabler-icons-svelte';
 	import { get } from 'svelte/store';
 
@@ -36,8 +36,15 @@
 
 	function DailyChallengeModalToggle() {
 		modalStore.close();
-		showPractice.set(true);
-		//console.log('daily challenge modal triggered');
+
+		const isGameFinished =
+			$gameStatus.status === 'win' ||
+			$gameStatus.status === 'sub-win' ||
+			$gameStatus.status === 'lose';
+
+		if (isGameFinished) {
+			showPractice.set(true);
+		}
 	}
 
 	let statsForToday: { won: any; guessCount: any; shortestPathLength: any } | null = null;
