@@ -91,7 +91,8 @@
 			won: $gameStatus.status === 'win' || $gameStatus.status === 'sub-win',
 			guessCount: $guessedStates.length,
 			shortestPathLength: get(dailyPathLength),
-			isDaily: true
+			isDaily: true,
+			status: $gameStatus.status
 		};
 
 		saveStats(stats);

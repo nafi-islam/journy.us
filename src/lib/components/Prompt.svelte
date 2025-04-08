@@ -87,7 +87,17 @@
 		const stats = JSON.parse(localStorage.getItem('journyDailyStats') || '{}');
 
 		const todayProgress = stats[today];
-		showPractice.set(!!todayProgress);
+
+		if (
+			todayProgress &&
+			(todayProgress.status === 'win' ||
+				todayProgress.status === 'sub-win' ||
+				todayProgress.status === 'lose')
+		) {
+			showPractice.set(true);
+		} else {
+			showPractice.set(false); // prevent practice from showing if they didn't win
+		}
 
 		await setDailyChallenge();
 		restoreDailyProgress();
