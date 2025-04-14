@@ -6,17 +6,21 @@ Try the game [here](https://www.journy.us/)!
 
 ## ⭐️ Features
 
-- **Dynamic State Selection**: Each game session generates a unique starting and target state.
-- **Interactive US Map**: States are visually highlighted based on guessed paths.
-- **Auto-Complete Guessing**: Suggests valid US states to help players make informed guesses.
-- **Dark & Light Mode**: Switch between dark and light themes.
-- **Animated Win Effect**: Players can celebrate a win with a confetti 
+- **Game Modes**: Choose between a daily challenge or practice mode
+- **Daily Statistics Tracking**: Players can follow their progress day by day through games played, win rate, and their streak
+- **Dynamic State Selection**: Game sessions generates a unique starting and target state
+- **Interactive US Map**: States are visually highlighted based on guessed paths
+- **Auto-Complete Guessing**: Suggests valid US states to help players make informed guesses
+- **Guess Guide**: Interactive visal cues to determine if a guess is optimal
+- **Dark & Light Mode**: Switch between dark and light themes
+- **Animated Win Effect**: Celebrate a win with confetti
+- **Share**: Share your daily challenge guess guide with friends for friendly competition
 - **Responsive Design**: Fully optimized for desktop and mobile
 
 ## 🛠 Tech Stack
 
 - **Frontend**: Svelte, SvelteKit, Skeleton UI
-- **Backend**: Utils
+- **Backend**: Utils, generateValidChallenges.ts
 - **Map Rendering**: d3.js
 - **State Management**: Svelte Stores
 - **Build Tool**: Vite
