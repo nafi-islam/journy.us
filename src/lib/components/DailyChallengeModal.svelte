@@ -64,35 +64,57 @@
 		statsForToday = stats[today];
 
 		// Compute all-time stats
-		const dates = Object.keys(stats).sort();
+		const dates = Object.keys(stats)
+			.filter((date) => stats[date]?.isDaily && stats[date]?.won)
+			.sort();
+		console.log('localStorage dates', dates);
+
 		let streak = 0;
 		let maxStreak = 0;
 		let winCount = 0;
 
-		for (const date of dates) {
-			const entry = stats[date];
-			if (!entry) continue;
+		let previousDate: Date | null = null;
 
-			aggregateStats.gamesPlayed++;
+		for (const dateStr of dates) {
+			const date = new Date(dateStr);
+			winCount++;
 
-			if (entry.won && entry.isDaily) {
-				winCount++;
-				streak++;
-
-				const index = entry.guessCount - 1;
-				if (index >= 0 && index < aggregateStats.guessDistribution.length) {
-					aggregateStats.guessDistribution[index]++;
+			if (previousDate) {
+				const diff = (date.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24);
+				if (diff === 1) {
+					streak++;
+				} else {
+					streak = 1; // reset, but this day counts
 				}
 			} else {
-				streak = 0;
+				streak = 1;
 			}
 
 			if (streak > maxStreak) maxStreak = streak;
+
+			previousDate = date;
 		}
 
+		// Check if streak extends to today
+		const lastPlayed = dates.at(-1);
+		const isToday = lastPlayed === today;
+		const currentStreak = isToday ? streak : 0;
+
+		aggregateStats.gamesPlayed = Object.keys(stats).length;
 		aggregateStats.winRate = Math.round((winCount / aggregateStats.gamesPlayed) * 100);
-		aggregateStats.currentStreak = streak;
+		aggregateStats.currentStreak = currentStreak;
 		aggregateStats.maxStreak = maxStreak;
+
+		// Build guess distribution
+		for (const key in stats) {
+			const entry = stats[key];
+			if (entry?.won && entry?.isDaily) {
+				const idx = entry.guessCount - 1;
+				if (idx >= 0 && idx < aggregateStats.guessDistribution.length) {
+					aggregateStats.guessDistribution[idx]++;
+				}
+			}
+		}
 	});
 
 	// const toastStore = getToastStore();
