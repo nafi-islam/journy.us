@@ -15,6 +15,7 @@
 		targetState
 	} from '../stores';
 	import { gameStatus } from '../utils';
+	import { getTodayUTC } from '$lib/utils';
 	import { get } from 'svelte/store';
 
 	const modalStore = getModalStore();
@@ -84,7 +85,7 @@
 	}
 
 	function recordDailyResult() {
-		const today = new Date().toISOString().split('T')[0];
+		const { todayKey: today } = getTodayUTC();
 		const stats = loadStats();
 
 		stats[today] = {

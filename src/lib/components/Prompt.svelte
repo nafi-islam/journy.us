@@ -19,7 +19,8 @@
 		showPractice,
 		modalShownPractice
 	} from '../stores';
-	import { checkLoadingComplete, gameStatus, getRandomStatePair } from '$lib/utils';
+	import { checkLoadingComplete, getRandomStatePair } from '$lib/utils';
+	import { getTodayUTC } from '$lib/utils';
 	import { get } from 'svelte/store';
 
 	function resetGameState() {
@@ -32,7 +33,7 @@
 	async function setDailyChallenge() {
 		resetGameState();
 
-		const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+		const { todayKey: today } = getTodayUTC();
 
 		try {
 			const res = await fetch('/validChallenges.json');
@@ -83,7 +84,7 @@
 
 	async function loadDailyChallengeAndProgress() {
 		// sets practice button when switching between practice and daily mode
-		const today = new Date().toISOString().split('T')[0];
+		const { todayKey: today } = getTodayUTC();
 		const stats = JSON.parse(localStorage.getItem('journyDailyStats') || '{}');
 
 		const todayProgress = stats[today];
@@ -110,7 +111,7 @@
 	}
 
 	async function restoreDailyProgress() {
-		const today = new Date().toISOString().split('T')[0];
+		const { todayKey: today } = getTodayUTC();
 		const stats = JSON.parse(localStorage.getItem('journyDailyStats') || '{}');
 
 		// Clean up old progress

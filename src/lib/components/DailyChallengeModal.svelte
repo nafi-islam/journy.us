@@ -7,13 +7,13 @@
 		dailyTargetState,
 		practiceMode,
 		showPlayAgain,
-		dailyGuessedStates,
 		guessedStates
 	} from '../stores';
 	import { loadStats } from '$lib/statistics';
 	import { onMount } from 'svelte';
 	import { ChartBar } from 'tabler-icons-svelte';
 	import { findAllShortestPaths, gameStatus, getGuessScore, resetGame } from '$lib/utils';
+	import { getTodayUTC } from '$lib/utils';
 	import { Copy } from 'tabler-icons-svelte';
 	import { get } from 'svelte/store';
 
@@ -21,9 +21,9 @@
 
 	// Assuming validChallenges.json starts on 2025-03-26
 	const challengeStartDate = new Date('2025-04-07');
-	const today = new Date();
+	const { todayDate, todayKey: today } = getTodayUTC();
 	const challengeNumber =
-		Math.floor((today.getTime() - challengeStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+		Math.floor((todayDate.getTime() - challengeStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
 	function enterPracticeMode() {
 		practiceMode.set(true);
@@ -57,8 +57,6 @@
 	};
 
 	onMount(() => {
-		const todayDate = new Date(); // actual Date object
-		const today = todayDate.toISOString().split('T')[0]; // keep string for stats lookup
 		const stats = loadStats();
 
 		// Show only if played today

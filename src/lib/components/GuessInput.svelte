@@ -14,6 +14,7 @@
 	} from '../stores';
 	import { statesGraph } from '../statesGraph';
 	import { formatStateName, gameStatus, resetGame } from '../utils';
+	import { getTodayUTC } from '$lib/utils';
 	import { derived, get } from 'svelte/store';
 
 	// $: hasPlayedToday = $showPractice && !$practiceMode;
@@ -67,7 +68,7 @@
 	function saveDailyProgress() {
 		if (get(practiceMode)) return;
 
-		const today = new Date().toISOString().split('T')[0];
+		const { todayKey: today } = getTodayUTC();
 		const stats = JSON.parse(localStorage.getItem('journyDailyStats') || '{}');
 
 		stats[today] = {

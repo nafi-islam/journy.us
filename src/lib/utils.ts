@@ -16,6 +16,14 @@ let loadingDelayApplied = false;
 
 const states = Object.keys(statesGraph);
 
+// Function to replace the current date with UTC date for standardization across the game
+export function getTodayUTC(): { todayDate: Date; todayKey: string } {
+	const now = new Date();
+	const todayDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+	const todayKey = todayDate.toISOString().split('T')[0];
+	return { todayDate, todayKey };
+}
+
 // Function to choose a valid start and target state for prompt
 export function getRandomStatePair() {
 	let start, target, shortestPath;
