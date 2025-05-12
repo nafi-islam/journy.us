@@ -57,17 +57,19 @@
 	};
 
 	onMount(() => {
-		const today = new Date().toISOString().split('T')[0];
+		const todayDate = new Date(); // actual Date object
+		const today = todayDate.toISOString().split('T')[0]; // keep string for stats lookup
 		const stats = loadStats();
 
 		// Show only if played today
 		statsForToday = stats[today];
 
 		// Compute all-time stats
-		const dates = Object.keys(stats)
-			.filter((date) => stats[date]?.isDaily && stats[date]?.won)
+		const playedDates = Object.keys(stats)
+			.filter((date) => stats[date]?.isDaily)
 			.sort();
-		console.log('localStorage dates', dates);
+
+		console.log('localStorage playedDates', playedDates);
 
 		let streak = 0;
 		let maxStreak = 0;
@@ -75,19 +77,23 @@
 
 		let previousDate: Date | null = null;
 
-		for (const dateStr of dates) {
+		for (const dateStr of playedDates) {
+			const entry = stats[dateStr];
 			const date = new Date(dateStr);
-			winCount++;
+
+			if (entry.won) winCount++;
 
 			if (previousDate) {
 				const diff = (date.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24);
-				if (diff === 1) {
+				if (diff > 1 || !entry.won) {
+					streak = entry.won ? 1 : 0;
+				} else if (entry.won) {
 					streak++;
 				} else {
-					streak = 1; // reset, but this day counts
+					streak = 0;
 				}
 			} else {
-				streak = 1;
+				streak = entry.won ? 1 : 0;
 			}
 
 			if (streak > maxStreak) maxStreak = streak;
@@ -95,10 +101,16 @@
 			previousDate = date;
 		}
 
-		// Check if streak extends to today
-		const lastPlayed = dates.at(-1);
-		const isToday = lastPlayed === today;
-		const currentStreak = isToday ? streak : 0;
+		// local storage consecutive streak patch -> timezone issue so force UTC
+		const lastPlayed = playedDates.at(-1);
+		const lastDate = lastPlayed ? new Date(lastPlayed + 'T00:00:00Z') : null; // force UTC
+		todayDate.setUTCHours(0, 0, 0, 0);
+
+		const diffFromToday = lastDate
+			? (todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
+			: Infinity;
+
+		const currentStreak = diffFromToday <= 1 ? streak : 0;
 
 		aggregateStats.gamesPlayed = Object.keys(stats).length;
 		aggregateStats.winRate = Math.round((winCount / aggregateStats.gamesPlayed) * 100);
