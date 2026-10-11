@@ -80,10 +80,18 @@ src/
     +layout.svelte      header (stats / settings / help buttons), modals, toasts, analytics
     +page.svelte        Prompt → Map → GuessInput → Guesses → GameStatus
   lib/
-    statesGraph.ts      adjacency list of the 48 states
-    utils.ts            bfs, random puzzle, scoring, win / lose rules (gameStatus)
-    stores.ts           svelte stores (shared state)
-    statistics.ts       load / save journyStats
+    engine/             the game logic, plain typescript (no svelte). each file has a .test.ts
+      statesGraph.ts      adjacency list of the 48 states
+      search.ts           bfs: findShortestPath, findAllShortestPaths, countStatesBetween
+      rules.ts            win / lose rules (evaluateGame), guess guide (getGuessScore)
+      game.ts             guess input checks (formatStateName, checkGuess)
+      practice.ts         random practice puzzles (getRandomStatePair)
+      legacy.ts           v1 daily json types + the v1 graph those puzzles use
+      dates.ts            date keys, day math, challenge numbers
+      stats.ts            played / win % / streaks / distribution (computeStats)
+      storage.ts          localStorage (journyStats, journyDailyStats, version)
+    utils.ts            svelte glue: the gameStatus derived store, resetGame, loading sync
+    stores.ts           svelte stores (shared state). m3 replaces these with runes
     components/
       Prompt.svelte         loads the daily (json) or a practice puzzle, restores progress
       Map.svelte            renders the map, colors start / target / guesses
@@ -93,7 +101,7 @@ src/
       DailyChallengeModal.svelte  stats, result, share
       PracticeModal.svelte  your route vs shortest route
       HelpModal / SettingsModal / Footer
-  lib/*.test.ts         vitest unit tests (next to the code they test)
+  lib/**/*.test.ts      vitest unit tests (next to the code they test)
 static/
   validChallenges.json  v1 daily puzzles 2025-04-07 → 2030-04-05 (generated)
 generateValidChallenges/  standalone ts-node script that generated the json
@@ -106,32 +114,43 @@ vercel.json             deploy gate: unit tests run before the build
 
 ### graph
 
-`src/lib/statesGraph.ts`. 48 states (no alaska, hawaii or dc). an edge means the two states
+`src/lib/engine/statesGraph.ts`. 48 states (no alaska, hawaii or dc). an edge means the two states
 share a **land boundary line**:
 
 - water-only boundaries do not count (michigan–minnesota, michigan–illinois,
   new york–rhode island).
 - **four corners**: states meeting at a single point do not count. v1 had arizona ↔ colorado
-  but not utah ↔ new mexico; v2 removes arizona ↔ colorado so the rule is consistent.
+  but not utah ↔ new mexico; v2 removed arizona ↔ colorado so the rule is consistent (105
+  borders).
+- **legacy puzzles keep the v1 graph**: the daily puzzles in `validChallenges.json` were
+  generated when arizona ↔ colorado was a border (79 upcoming days route through it), so
+  `engine/legacy.ts` exports `legacyStatesGraph` (current graph + that border) and those days
+  are played on it. every engine function takes an optional `graph` argument for this, and
+  the svelte side keeps the current puzzle's graph in the `puzzleGraph` store. practice (and,
+  from m2, generated dailies) use the current graph.
 
 every edge must be listed in both directions. the graph must stay connected (tests check both).
 
-### bfs (`src/lib/utils.ts`)
+### bfs (`engine/search.ts`)
 
-- `findShortestPath(start, target)` — first shortest path found (order follows the adjacency
-  list). used for the win check and the "shortest route" text.
-- `findAllShortestPaths(start, target)` — every shortest path. used for scoring.
-- `getRandomStatePair()` — random practice puzzle with 2–5 states in between.
+- `findShortestPath(start, target, graph?)` — first shortest path found (order follows the
+  adjacency list). used for the win check and the "shortest route" text.
+- `findAllShortestPaths(start, target, graph?)` — every shortest path. used for scoring.
+- `getRandomStatePair()` (`engine/practice.ts`) — practice puzzle with 2–5 states in between.
 
-### rules (`gameStatus` in `utils.ts`)
+### rules (`evaluateGame` in `engine/rules.ts`)
 
 optimal = states between start and target on a shortest path. budget = optimal + 3.
 guesses can be in any order; they only need to connect start to target.
 
 1. **win**: guesses connect start → target using exactly `optimal` guesses
 2. **sub-win**: guesses connect start → target within the budget
-3. **lose**: budget used without connecting
+3. **lose**: budget used without connecting (`>=`, so extra guesses can never reopen a game)
 4. otherwise **playing**
+
+`checkGuess` (`engine/game.ts`) refuses a guess when the game is over, the name isn't a state,
+it was already guessed, or it's the start / target. `utils.ts` wraps `evaluateGame` in the
+`gameStatus` derived store for the svelte components.
 
 ### guess guide (scoring)
 
@@ -154,16 +173,24 @@ https://www.journy.us/
 
 ### localStorage contract (do not break)
 
-players' stats live here. any change must import the old data (see "v2 refactor").
+players' stats live here. **rule: keep v1's keys and shapes and only ever add optional
+fields.** then returning players need no migration and a rollback to v1 still reads
+everything (verified by running v1 against v2-written storage). all access goes through
+`engine/storage.ts`, which never throws on bad data.
 
-| key                                               | shape                                                                                                       |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `journyStats`                                     | `{ [date]: { won, guessCount, shortestPathLength, isDaily: true } }` — one entry per finished daily         |
-| `journyDailyStats`                                | `{ [date]: { guessedStates: string[], guessCount, won } }` — today's in-progress daily (older dates pruned) |
-| `modeCurrent`, `modeUserPrefers`, `modeOsPrefers` | skeleton v2 light / dark preference (json booleans, `true` = light)                                         |
+| key                                               | shape                                                                                                                |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `journyStats`                                     | `{ [date]: { won, guessCount, shortestPathLength, isDaily: true } }` — one entry per finished daily                  |
+| `journyDailyStats`                                | `{ [date]: { guessedStates: string[], guessCount, won, resultSeen? } }` — today's daily (older dates pruned on load) |
+| `journyStorageVersion`                            | `2` — added in v2 for future migrations                                                                              |
+| `modeCurrent`, `modeUserPrefers`, `modeOsPrefers` | skeleton v2 light / dark preference (json booleans, `true` = light)                                                  |
 
-stats: played = entries, win % = wins / played, streak = consecutive daily wins,
-distribution = wins by guess count (1–8).
+`resultSeen` (v2) = the result modal was shown, so it isn't replayed on reload.
+
+stats (`engine/stats.ts`): played = entries, win % = wins / played (0 for new players),
+streak = daily wins on consecutive calendar days (a loss or a skipped day resets it; the
+current streak is alive while the last win is today or yesterday), distribution = wins by
+guess count (1–8).
 
 ---
 
@@ -178,9 +205,10 @@ confetti). **keep v1's code and logic wherever possible.**
 - **m0 — safety net**: vitest unit tests + playwright browser tests that pin v1 behavior,
   including known bugs as expected failures. no github actions: vercel's build runs the unit
   tests first, so a failing test blocks a deploy.
-- **m1 — engine in typescript**: move game logic into `src/lib/engine/` (plain `.ts`, no
-  svelte) by porting `utils.ts`; ui stays svelte. explicit game states, calendar-day streaks,
-  versioned storage with v1 import.
+- **m1 — engine in typescript** ✅: game logic ported from `utils.ts` into
+  `src/lib/engine/` (plain `.ts`, no svelte); ui stays svelte. finished games refuse
+  guesses, calendar-day streaks, additive storage, four corners fixed (legacy days keep the
+  v1 graph). bugs 1, 2, 3, 9 and 10 fixed.
 - **m2 — daily from the date**: seeded shuffle over every valid pair, so puzzles never run
   out and the json goes away. a `SWITCH_DATE` keeps v1 puzzles until the cutover.
 - **m3 — platform upgrade + ui uplift**: latest sveltekit, svelte 5 (runes), tailwind 4,
@@ -197,31 +225,32 @@ state).
 
 ### decisions (and why)
 
-| decision                                                            | why                                                                                                                                              |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| four corners: neither diagonal is an edge                           | an edge = a shared land boundary line; a point isn't a line. matches how water boundaries are already excluded                                   |
-| keep skeleton (v2 → v5)                                             | owner preference; skeleton 5 supports svelte 5 + tailwind 4, has every component journy uses and still ships the vintage theme                   |
-| prerender the site (static)                                         | v1 runs a serverless function on every visit to render html that has no puzzle in it. static is faster, free and has no node runtime to maintain |
-| daily derived from the date                                         | never expires, one copy of the graph / bfs, no public answer-key file, enables a future archive                                                  |
-| local-midnight rollover                                             | v1 rolled at utc midnight (evening in the us). applies from `SWITCH_DATE`                                                                        |
-| storage: one versioned key, import v1, never delete v1 keys in v2.0 | protects returning players' stats and makes rollback safe                                                                                        |
-| hints opt-in per puzzle, 💡 marker in share                         | keeps the default daily pure and shares honest                                                                                                   |
-| regions = u.s. census bureau regions                                | official, covers all 48 states exactly once                                                                                                      |
-| twist = its own daily                                               | experts get a challenge without changing the main daily                                                                                          |
+| decision                                                   | why                                                                                                                                              |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| four corners: neither diagonal is an edge                  | an edge = a shared land boundary line; a point isn't a line. matches how water boundaries are already excluded                                   |
+| keep skeleton (v2 → v5)                                    | owner preference; skeleton 5 supports svelte 5 + tailwind 4, has every component journy uses and still ships the vintage theme                   |
+| prerender the site (static)                                | v1 runs a serverless function on every visit to render html that has no puzzle in it. static is faster, free and has no node runtime to maintain |
+| daily derived from the date                                | never expires, one copy of the graph / bfs, no public answer-key file, enables a future archive                                                  |
+| local-midnight rollover                                    | v1 rolled at utc midnight (evening in the us). applies from `SWITCH_DATE`                                                                        |
+| storage: keep v1 keys and shapes, only add optional fields | no migration step for returning players, and rollback to v1 keeps working (safer than a new key + import, which was the first plan)              |
+| hints opt-in per puzzle, 💡 marker in share                | keeps the default daily pure and shares honest                                                                                                   |
+| regions = u.s. census bureau regions                       | official, covers all 48 states exactly once                                                                                                      |
+| twist = its own daily                                      | experts get a challenge without changing the main daily                                                                                          |
 
-### v1 bugs being fixed
+### v1 bugs (all fixed in m1)
 
 numbers match `tests/e2e/bugs.spec.ts` (4–8 were v1 design choices or data issues, not ui bugs).
+each one is now a regression test.
 
-- **bug 1**: the enter key still submits guesses after the game is over (and overwrites saved
-  stats).
-- **bug 2**: switching to practice before guessing reuses the daily puzzle and reveals its
+- **bug 1**: the enter key still submitted guesses after the game was over (and overwrote
+  saved stats).
+- **bug 2**: switching to practice before guessing reused the daily puzzle and revealed its
   answer.
-- **bug 3**: streaks don't reset when a day is skipped.
-- **bug 9**: after a mid-game reload the guess button says "practice", because any saved
-  progress for today counts as "played today".
-- nitpicks fixed along the way: NaN win rate for new players, the result modal replaying on
-  reload.
+- **bug 3**: streaks didn't reset when a day was skipped.
+- **bug 9**: after a mid-game reload the guess button said "practice", because any saved
+  progress for today counted as "played today".
+- **bug 10**: sharing from the stats modal after playing practice shared the practice guesses.
+- nitpicks: NaN win rate for new players, the result modal replaying on reload.
 
 ### future notes
 
