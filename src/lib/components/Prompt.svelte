@@ -18,6 +18,7 @@
 		dailyGuessCount,
 		showPractice,
 		modalShownPractice,
+		modalShownDaily,
 		puzzleGraph
 	} from '../stores';
 	import { checkLoadingComplete } from '$lib/utils';
@@ -119,6 +120,9 @@
 
 		// Restore today’s progress
 		if (todayProgress && !$practiceMode) {
+			// the result modal was already shown for today's daily, don't replay it
+			modalShownDaily.set(!!todayProgress.resultSeen);
+
 			// Store for reference (fine)
 			dailyGuessedStates.set(todayProgress.guessedStates || []);
 			dailyGuessCount.set(todayProgress.guessCount || 0);

@@ -3,9 +3,9 @@
 	import type { ModalSettings } from '@skeletonlabs/skeleton';
 	import PracticeModal from '$lib/components/PracticeModal.svelte';
 	import DailyChallengeModal from '$lib/components/DailyChallengeModal.svelte';
-	import { recordDailyResult as saveDailyResult } from '$lib/engine/storage';
+	import { markDailyResultSeen, recordDailyResult as saveDailyResult } from '$lib/engine/storage';
 	import { utcDateKey } from '$lib/engine/dates';
-	import { isWin } from '$lib/engine/rules';
+	import { isGameOver, isWin } from '$lib/engine/rules';
 	import {
 		dailyPathLength,
 		guessedStates,
@@ -38,9 +38,7 @@
 	// Function to open the result modal when the game ends
 	$: {
 		if (
-			($gameStatus.status === 'win' ||
-				$gameStatus.status === 'sub-win' ||
-				$gameStatus.status === 'lose') &&
+			isGameOver($gameStatus.status) &&
 			!get($practiceMode ? modalShownPractice : modalShownDaily)
 		) {
 			if ($practiceMode) {
@@ -48,11 +46,11 @@
 			} else {
 				modalShownDaily.set(true);
 				showPractice.set(true); // makes sure that hasPlayedToday evaluates correctly ---> button becomes practice after playing (even if user escapes or clicks out of the modal)
+				markDailyResultSeen(utcDateKey()); // don't replay the modal + confetti after a reload
 			}
 
-			if ($gameStatus.status === 'win' || $gameStatus.status === 'sub-win') {
+			if (isWin($gameStatus.status)) {
 				triggerConfetti();
-				// console.log('confetti triggered');
 			}
 
 			setTimeout(() => {
@@ -88,12 +86,7 @@
 		});
 	}
 
-	$: if (
-		!$practiceMode &&
-		($gameStatus.status === 'win' ||
-			$gameStatus.status === 'sub-win' ||
-			$gameStatus.status === 'lose')
-	) {
+	$: if (!$practiceMode && isGameOver($gameStatus.status)) {
 		recordDailyResult();
 	}
 </script>

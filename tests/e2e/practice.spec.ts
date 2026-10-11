@@ -38,7 +38,7 @@ test('practice guesses are not saved to the daily storage', async ({ page }) => 
 	await guess(page, 'Maine');
 
 	expect(await readStorage(page, 'journyDailyStats')).toEqual({
-		[TEST_DATE_KEY]: { guessedStates: OPTIMAL_GUESSES, guessCount: 3, won: true }
+		[TEST_DATE_KEY]: { guessedStates: OPTIMAL_GUESSES, guessCount: 3, won: true, resultSeen: true }
 	});
 });
 

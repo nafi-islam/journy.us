@@ -29,9 +29,10 @@ test('an optimal win shows the result and writes the v1 localStorage contract', 
 	await expect(page.getByText('Challenge #553')).toBeVisible();
 	await expect(page.getByText('Congratulations!')).toBeVisible();
 
-	// exact v1 shapes. v2 must be able to import these (see CLAUDE.md localStorage contract)
+	// exact v1 shapes (see CLAUDE.md localStorage contract). v2 only adds optional fields:
+	// resultSeen marks that the result modal was shown (v1 ignores it)
 	expect(await readStorage(page, 'journyDailyStats')).toEqual({
-		[TEST_DATE_KEY]: { guessedStates: OPTIMAL_GUESSES, guessCount: 3, won: true }
+		[TEST_DATE_KEY]: { guessedStates: OPTIMAL_GUESSES, guessCount: 3, won: true, resultSeen: true }
 	});
 	expect(await readStorage(page, 'journyStats')).toEqual({
 		[TEST_DATE_KEY]: { won: true, guessCount: 3, shortestPathLength: 3, isDaily: true }
@@ -111,4 +112,16 @@ test('a finished daily still shows the practice button after a reload', async ({
 	await page.reload();
 	await expect(guessChips(page)).toHaveCount(3);
 	await expect(mainButton(page)).toHaveText('Practice');
+});
+
+test('the result modal is not replayed after a reload', async ({ page }) => {
+	await openDaily(page);
+	for (const state of OPTIMAL_GUESSES) await guess(page, state);
+	await expect(page.getByText('Challenge #553')).toBeVisible();
+	expect((await readStorage(page, 'journyDailyStats'))[TEST_DATE_KEY].resultSeen).toBe(true);
+
+	await page.reload();
+	await expect(guessChips(page)).toHaveCount(3);
+	await page.waitForTimeout(1_500); // the modal used to open 500ms after load
+	await expect(page.getByText('Challenge #553')).toHaveCount(0);
 });
