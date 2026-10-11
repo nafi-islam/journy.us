@@ -37,6 +37,7 @@ test('an optimal win shows the result and writes the v1 localStorage contract', 
 	expect(await readStorage(page, 'journyStats')).toEqual({
 		[TEST_DATE_KEY]: { won: true, guessCount: 3, shortestPathLength: 3, isDaily: true }
 	});
+	expect(await readStorage(page, 'journyStorageVersion')).toBe(2);
 
 	await closeModal(page);
 	await expect(mainButton(page)).toHaveText('Practice');

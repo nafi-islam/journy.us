@@ -26,7 +26,7 @@
 	import { statesGraph } from '$lib/engine/statesGraph';
 	import { legacyStatesGraph, type LegacyChallenges } from '$lib/engine/legacy';
 	import { utcDateKey } from '$lib/engine/dates';
-	import { loadDailyProgress } from '$lib/engine/storage';
+	import { ensureStorageVersion, loadDailyProgress } from '$lib/engine/storage';
 	import { evaluateGame, isGameOver } from '$lib/engine/rules';
 	import { get } from 'svelte/store';
 
@@ -136,6 +136,8 @@
 	}
 
 	onMount(() => {
+		ensureStorageVersion(); // marks journyStorageVersion, never rewrites v1 data
+
 		if ($practiceMode) {
 			setPracticeMode();
 		} else {
