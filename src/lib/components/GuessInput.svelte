@@ -15,7 +15,7 @@
 	} from '../stores';
 	import { checkGuess } from '$lib/engine/game';
 	import { isWin } from '$lib/engine/rules';
-	import { utcDateKey } from '$lib/engine/dates';
+	import { getTodayKey } from '$lib/engine/daily';
 	import { saveDailyProgress as saveProgress } from '$lib/engine/storage';
 	import { gameStatus, resetGame } from '../utils';
 	import { derived, get } from 'svelte/store';
@@ -71,7 +71,7 @@
 	function saveDailyProgress() {
 		if (get(practiceMode)) return;
 
-		saveProgress(utcDateKey(), {
+		saveProgress(getTodayKey(), {
 			guessedStates: get(guessedStates),
 			guessCount: get(guessCount),
 			won: isWin($gameStatus.status)

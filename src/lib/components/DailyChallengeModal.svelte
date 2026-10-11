@@ -15,19 +15,16 @@
 	import { resetGame } from '$lib/utils';
 	import { findAllShortestPaths } from '$lib/engine/search';
 	import { getGuessScore } from '$lib/engine/rules';
-	import { legacyStatesGraph } from '$lib/engine/legacy';
-	import { utcDateKey } from '$lib/engine/dates';
+	import { getChallengeNumber } from '$lib/engine/dates';
+	import { getDailyGraph, getTodayKey } from '$lib/engine/daily';
 	import { computeStats, type AggregateStats, type DailyResult } from '$lib/engine/stats';
 	import { Copy } from 'tabler-icons-svelte';
 	import { get } from 'svelte/store';
 
 	const modalStore = getModalStore();
 
-	// Assuming validChallenges.json starts on 2025-03-26
-	const challengeStartDate = new Date('2025-04-07');
-	const today = new Date();
-	const challengeNumber =
-		Math.floor((today.getTime() - challengeStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+	// challenge #1 was 2025-04-07 (see engine/dates.ts)
+	const challengeNumber = getChallengeNumber(getTodayKey());
 
 	function enterPracticeMode() {
 		practiceMode.set(true);
@@ -45,10 +42,10 @@
 	}
 
 	let statsForToday: DailyResult | null = null;
-	let aggregateStats: AggregateStats = computeStats({}, utcDateKey());
+	let aggregateStats: AggregateStats = computeStats({}, getTodayKey());
 
 	onMount(() => {
-		const today = utcDateKey();
+		const today = getTodayKey();
 		const stats = loadStats();
 
 		// Show only if played today
@@ -74,16 +71,17 @@
 
 		// share the saved daily guesses, not the board on screen (v1 bug 10: after moving on to
 		// practice, the practice guesses were shared)
-		const guessesToShare = loadDailyProgress(utcDateKey())?.guessedStates ?? [];
+		const guessesToShare = loadDailyProgress(getTodayKey())?.guessedStates ?? [];
 		const start = get(dailyStartState);
 		const target = get(dailyTargetState);
 
-		// the daily is a legacy puzzle (v1 graph) until SWITCH_DATE
-		const allPaths = findAllShortestPaths(start, target, legacyStatesGraph);
+		// legacy dailies (before SWITCH_DATE) are played on the v1 graph
+		const dailyGraph = getDailyGraph(getTodayKey());
+		const allPaths = findAllShortestPaths(start, target, dailyGraph);
 
 		const icons = guessesToShare
 			.map((guess) => {
-				const score = getGuessScore(guess, allPaths, legacyStatesGraph);
+				const score = getGuessScore(guess, allPaths, dailyGraph);
 				if (score === 'green') return '🟩';
 				if (score === 'orange') return '🟧';
 				return '🟥';

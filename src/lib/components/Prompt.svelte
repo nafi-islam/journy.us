@@ -24,8 +24,13 @@
 	import { checkLoadingComplete } from '$lib/utils';
 	import { getRandomStatePair } from '$lib/engine/practice';
 	import { statesGraph } from '$lib/engine/statesGraph';
-	import { legacyStatesGraph, type LegacyChallenges } from '$lib/engine/legacy';
-	import { utcDateKey } from '$lib/engine/dates';
+	import {
+		getGeneratedPuzzle,
+		getLegacyPuzzle,
+		getTodayKey,
+		isLegacyDate,
+		type DailyPuzzle
+	} from '$lib/engine/daily';
 	import { ensureStorageVersion, loadDailyProgress } from '$lib/engine/storage';
 	import { evaluateGame, isGameOver } from '$lib/engine/rules';
 	import { get } from 'svelte/store';
@@ -36,32 +41,38 @@
 		showPlayAgain.set(false);
 	}
 
-	// Load today's challenge from static JSON
+	// Load today's challenge (v1 json before SWITCH_DATE, generated from the date after)
 	async function setDailyChallenge() {
 		resetGameState();
 
-		const today = utcDateKey(); // YYYY-MM-DD format
+		const today = getTodayKey(); // YYYY-MM-DD format
 
 		try {
-			const res = await fetch('/validChallenges.json');
-			const challenges: LegacyChallenges = await res.json();
+			let todayChallenge: DailyPuzzle | null;
 
-			const todayChallenge = challenges[today];
+			if (isLegacyDate(today)) {
+				const res = await fetch('/validChallenges.json');
+				todayChallenge = getLegacyPuzzle(today, await res.json());
+			} else {
+				todayChallenge = getGeneratedPuzzle(today);
+			}
 
 			if (todayChallenge) {
+				const { start, target, shortestPath, graph } = todayChallenge;
+				const length = shortestPath.length - 2;
+
 				// legacy puzzles were generated with the v1 graph (four corners included)
-				puzzleGraph.set(legacyStatesGraph);
-				startState.set(todayChallenge.dailyStartState);
-				targetState.set(todayChallenge.dailyTargetState);
-				pathLength.set(todayChallenge.dailyPathLength);
+				puzzleGraph.set(graph);
+				startState.set(start);
+				targetState.set(target);
+				pathLength.set(length);
 
-				dailyStartState.set(todayChallenge.dailyStartState); // Avoid refetching JSON
-				//console.log('dailyStartState:', todayChallenge.dailyStartState);
-				dailyTargetState.set(todayChallenge.dailyTargetState);
-				dailyPathLength.set(todayChallenge.dailyPathLength);
-				dailyShortestPath.set(todayChallenge.shortestPath);
+				dailyStartState.set(start); // Avoid refetching JSON
+				dailyTargetState.set(target);
+				dailyPathLength.set(length);
+				dailyShortestPath.set(shortestPath);
 
-				// debug: console.log('daily path:', todayChallenge.shortestPath.join(' -> '));
+				// debug: console.log('daily path:', shortestPath.join(' -> '));
 
 				startState.set(get(dailyStartState));
 				targetState.set(get(dailyTargetState));
@@ -69,7 +80,7 @@
 				console.error(`No challenge found for ${today}`);
 			}
 		} catch (error) {
-			console.error('Failed to load validChallenges.json:', error);
+			console.error('Failed to load the daily challenge:', error);
 		}
 	}
 
@@ -98,7 +109,7 @@
 		// sets practice button when switching between practice and daily mode
 		// only a *finished* daily counts as played today (v1 bug 9: any saved guess turned the
 		// guess button into practice after a reload)
-		const todayProgress = loadDailyProgress(utcDateKey());
+		const todayProgress = loadDailyProgress(getTodayKey());
 		const todayStatus = evaluateGame(
 			get(dailyStartState),
 			get(dailyTargetState),
@@ -116,7 +127,7 @@
 
 	async function restoreDailyProgress() {
 		// loads today's progress and cleans up older days
-		const todayProgress = loadDailyProgress(utcDateKey());
+		const todayProgress = loadDailyProgress(getTodayKey());
 
 		// Restore today’s progress
 		if (todayProgress && !$practiceMode) {

@@ -4,7 +4,7 @@
 	import PracticeModal from '$lib/components/PracticeModal.svelte';
 	import DailyChallengeModal from '$lib/components/DailyChallengeModal.svelte';
 	import { markDailyResultSeen, recordDailyResult as saveDailyResult } from '$lib/engine/storage';
-	import { utcDateKey } from '$lib/engine/dates';
+	import { getTodayKey } from '$lib/engine/daily';
 	import { isGameOver, isWin } from '$lib/engine/rules';
 	import {
 		dailyPathLength,
@@ -46,7 +46,7 @@
 			} else {
 				modalShownDaily.set(true);
 				showPractice.set(true); // makes sure that hasPlayedToday evaluates correctly ---> button becomes practice after playing (even if user escapes or clicks out of the modal)
-				markDailyResultSeen(utcDateKey()); // don't replay the modal + confetti after a reload
+				markDailyResultSeen(getTodayKey()); // don't replay the modal + confetti after a reload
 			}
 
 			if (isWin($gameStatus.status)) {
@@ -78,7 +78,7 @@
 	}
 
 	function recordDailyResult() {
-		saveDailyResult(utcDateKey(), {
+		saveDailyResult(getTodayKey(), {
 			won: isWin($gameStatus.status),
 			guessCount: $guessedStates.length,
 			shortestPathLength: get(dailyPathLength),
