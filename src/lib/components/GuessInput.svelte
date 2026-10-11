@@ -13,7 +13,7 @@
 		showPractice,
 		puzzleGraph
 	} from '../stores';
-	import { formatStateName } from '$lib/engine/game';
+	import { checkGuess } from '$lib/engine/game';
 	import { isWin } from '$lib/engine/rules';
 	import { utcDateKey } from '$lib/engine/dates';
 	import { saveDailyProgress as saveProgress } from '$lib/engine/storage';
@@ -79,28 +79,31 @@
 	}
 
 	// Submit Guess with Validation & Toast Notification
+	// the engine decides if a guess is allowed. a finished game never takes more guesses, which
+	// also covers the enter key (v1 bug 1: enter could add guesses after the game was over)
 	function submitGuess() {
-		if (inputPopupError.trim() !== '') {
-			const formattedGuess = formatStateName(inputPopupError);
+		const check = checkGuess(inputPopupError, {
+			start: $startState,
+			target: $targetState,
+			guessed: $guessedStates,
+			status: $gameStatus.status,
+			graph: $puzzleGraph
+		});
 
-			// Check if the formatted guess exists in the graph
-			if (!(formattedGuess in $puzzleGraph)) {
-				// Show a toast notification if invalid
-				errorToastToggle();
-				return;
+		if (!check.ok) {
+			// Show a toast notification if invalid
+			if (check.reason === 'invalid') errorToastToggle();
+
+			// duplicates (and the start / target) are ignored and cleared, like v1 did for duplicates
+			if (check.reason === 'duplicate' || check.reason === 'start-or-target') {
+				inputPopupError = '';
 			}
-
-			// Add valid guess if not already guessed
-			guessedStates.update((guesses) => {
-				if (!guesses.includes(formattedGuess)) {
-					return [...guesses, formattedGuess];
-				}
-				return guesses;
-			});
-
-			saveDailyProgress();
-			inputPopupError = ''; // Clear input after guessing
+			return;
 		}
+
+		guessedStates.update((guesses) => [...guesses, check.state]);
+		saveDailyProgress();
+		inputPopupError = ''; // Clear input after guessing
 	}
 
 	// Filtered list: remove startState, targetState, and guessedStates

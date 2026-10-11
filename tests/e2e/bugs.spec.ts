@@ -15,10 +15,9 @@ import {
 	readStorage
 } from './helpers';
 
-// bug 1: the enter key in the guess input bypasses the button logic after the game is over
+// bug 1 (fixed in m1): the enter key in the guess input bypassed the button logic after the
+// game was over
 test('bug 1: guesses are rejected after the daily is finished', async ({ page }) => {
-	test.fail(!process.env.SHOW_V1_BUGS, 'known v1 bug');
-
 	await openDaily(page);
 	for (const state of OPTIMAL_GUESSES) await guess(page, state);
 	await expect(page.getByText('Challenge #553')).toBeVisible();
