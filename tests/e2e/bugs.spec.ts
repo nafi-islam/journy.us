@@ -12,7 +12,8 @@ import {
 	mainButton,
 	openDaily,
 	openHeaderModal,
-	readStorage
+	readStorage,
+	toggleGameMode
 } from './helpers';
 
 // bug 1 (fixed in m1): the enter key in the guess input bypassed the button logic after the
@@ -31,14 +32,11 @@ test('bug 1: guesses are rejected after the daily is finished', async ({ page })
 	});
 });
 
-// bug 2: switching to practice before guessing keeps the daily puzzle (full map + answer)
+// bug 2 (fixed in m1): switching to practice before guessing kept the daily puzzle
+// (full map + answer)
 test('bug 2: practice never reuses the daily puzzle', async ({ page }) => {
-	test.fail(!process.env.SHOW_V1_BUGS, 'known v1 bug');
-
 	await openDaily(page);
-	await openHeaderModal(page, 'settings');
-	await page.getByRole('switch', { name: 'Daily Challenge' }).click();
-	await closeModal(page);
+	await toggleGameMode(page);
 
 	await expect(page.getByText('your journy now is...')).toBeVisible();
 	await expect(page.getByText('to go from')).not.toHaveText('to go from Utah to Tennessee', {

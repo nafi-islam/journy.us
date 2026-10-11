@@ -8,9 +8,16 @@ export const TEST_DAY = new Date('2026-10-11T15:00:00Z');
 export const TEST_DATE_KEY = '2026-10-11';
 export const OPTIMAL_GUESSES = ['Wyoming', 'Nebraska', 'Missouri'];
 
-// Function to open the daily challenge with the clock frozen on the test day
+// Function to set the browser clock to a moment and let it keep running
+// (a frozen clock would also freeze the modal animations)
+export async function setClock(page: Page, time: Date) {
+	await page.clock.install({ time });
+	await page.clock.resume();
+}
+
+// Function to open the daily challenge on the test day
 export async function openDaily(page: Page) {
-	await page.clock.setFixedTime(TEST_DAY);
+	await setClock(page, TEST_DAY);
 	await page.goto('/');
 	await expect(page.getByText('to go from')).toContainText('Utah');
 	await expect(page.getByText('to go from')).toContainText('Tennessee');
@@ -33,18 +40,33 @@ export function mainButton(page: Page) {
 	return page.getByRole('button', { name: /^(Guess|Practice|Play Again)/ });
 }
 
+// Function to get the modal backdrop (skeleton v2)
+function modalBackdrop(page: Page) {
+	return page.getByTestId('modal-backdrop');
+}
+
 // Function to open one of the header modals (they are icon buttons without labels in v1)
 export async function openHeaderModal(page: Page, which: 'stats' | 'settings' | 'help') {
 	const index = { stats: 0, settings: 1, help: 2 }[which];
 	await page.locator('#shell-header button').nth(index).click();
+	await expect(modalBackdrop(page)).toBeVisible();
 }
 
-// Function to close whatever modal is open
+// Function to close whatever modal is open and wait for its fade-out to finish
 export async function closeModal(page: Page) {
 	await page.keyboard.press('Escape');
+	await expect(modalBackdrop(page)).toHaveCount(0);
 }
 
 // Function to read a localStorage key as json
 export async function readStorage(page: Page, key: string) {
 	return page.evaluate((k) => JSON.parse(localStorage.getItem(k) || 'null'), key);
+}
+
+// Function to flip the game mode switch in the settings modal (daily <-> practice)
+// the game mode switch is the first switch in the modal (the second one is light / dark)
+export async function toggleGameMode(page: Page) {
+	await openHeaderModal(page, 'settings');
+	await page.getByRole('switch').first().click();
+	await closeModal(page);
 }

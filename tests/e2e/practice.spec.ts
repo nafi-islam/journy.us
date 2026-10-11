@@ -9,7 +9,8 @@ import {
 	guessChips,
 	mainButton,
 	openDaily,
-	readStorage
+	readStorage,
+	toggleGameMode
 } from './helpers';
 
 test('after the daily, practice starts a new puzzle with the full map', async ({ page }) => {
@@ -39,4 +40,18 @@ test('practice guesses are not saved to the daily storage', async ({ page }) => 
 	expect(await readStorage(page, 'journyDailyStats')).toEqual({
 		[TEST_DATE_KEY]: { guessedStates: OPTIMAL_GUESSES, guessCount: 3, won: true }
 	});
+});
+
+test('switching back from practice restores the daily and its progress', async ({ page }) => {
+	await openDaily(page);
+	await guess(page, 'Wyoming');
+
+	await toggleGameMode(page);
+	await expect(page.getByText('your journy now is...')).toBeVisible();
+	await expect(guessChips(page)).toHaveCount(0);
+
+	await toggleGameMode(page);
+	await expect(page.getByText('your journy today is...')).toBeVisible();
+	await expect(page.getByText('to go from')).toHaveText('to go from Utah to Tennessee');
+	await expect(guessChips(page)).toHaveText(['🟩 Wyoming']);
 });

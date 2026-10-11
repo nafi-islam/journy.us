@@ -137,9 +137,9 @@
 
 	$: {
 		if (!wasPracticeMode && $practiceMode && $statesLoaded) {
-			if ($showPlayAgain || $guessedStates.length > 0) {
-				setPracticeMode(); // prevent the practice mode from getting wiped as they toggle back and forth
-			}
+			// just switched to practice: always start a new practice puzzle
+			// (v1 bug 2: switching before any guess kept the daily puzzle and revealed its answer)
+			setPracticeMode();
 		}
 
 		if (wasPracticeMode && !$practiceMode && $statesLoaded) {
