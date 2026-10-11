@@ -1,19 +1,13 @@
 // tests for the v1 daily puzzles in static/validChallenges.json
-// the file stays in use until SWITCH_DATE (v2 m2), so it must stay valid
+// the file stays in use until SWITCH_DATE (v2 m2), so it must stay valid.
+// these puzzles were generated with the v1 graph, so they are checked against legacyStatesGraph
 
 import { describe, expect, it } from 'vitest';
-import challenges from '../../static/validChallenges.json';
-import { statesGraph } from './statesGraph';
-import { findShortestPath } from './utils';
+import challenges from '../../../static/validChallenges.json';
+import { legacyStatesGraph, type LegacyChallenges } from './legacy';
+import { findShortestPath } from './search';
 
-type Challenge = {
-	dailyStartState: string;
-	dailyTargetState: string;
-	dailyPathLength: number;
-	shortestPath: string[];
-};
-
-const daily = challenges as Record<string, Challenge>;
+const daily = challenges as LegacyChallenges;
 const dates = Object.keys(daily);
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -43,13 +37,12 @@ describe('validChallenges.json', () => {
 
 			// every step crosses a real border
 			for (let i = 1; i < shortestPath.length; i++) {
-				expect(statesGraph[shortestPath[i - 1]], date).toContain(shortestPath[i]);
+				expect(legacyStatesGraph[shortestPath[i - 1]], date).toContain(shortestPath[i]);
 			}
 
 			// and nothing shorter exists
-			expect(findShortestPath(dailyStartState, dailyTargetState)!.length, date).toBe(
-				shortestPath.length
-			);
+			const legacyPath = findShortestPath(dailyStartState, dailyTargetState, legacyStatesGraph);
+			expect(legacyPath!.length, date).toBe(shortestPath.length);
 		}
 	});
 });

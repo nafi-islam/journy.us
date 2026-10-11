@@ -10,10 +10,14 @@
 		dailyGuessedStates,
 		guessedStates
 	} from '../stores';
-	import { loadStats } from '$lib/statistics';
+	import { loadStats } from '$lib/engine/storage';
 	import { onMount } from 'svelte';
 	import { ChartBar } from 'tabler-icons-svelte';
-	import { findAllShortestPaths, getGuessScore, resetGame } from '$lib/utils';
+	import { resetGame } from '$lib/utils';
+	import { findAllShortestPaths } from '$lib/engine/search';
+	import { getGuessScore } from '$lib/engine/rules';
+	import { legacyStatesGraph } from '$lib/engine/legacy';
+	import { utcDateKey } from '$lib/engine/dates';
 	import { Copy } from 'tabler-icons-svelte';
 	import { get } from 'svelte/store';
 
@@ -50,7 +54,7 @@
 	};
 
 	onMount(() => {
-		const today = new Date().toISOString().split('T')[0];
+		const today = utcDateKey();
 		const stats = loadStats();
 
 		// Show only if played today
@@ -106,11 +110,12 @@
 		const start = get(dailyStartState);
 		const target = get(dailyTargetState);
 
-		const allPaths = findAllShortestPaths(start, target);
+		// the daily is a legacy puzzle (v1 graph) until SWITCH_DATE
+		const allPaths = findAllShortestPaths(start, target, legacyStatesGraph);
 
 		const icons = guessesToShare
 			.map((guess) => {
-				const score = getGuessScore(guess, allPaths);
+				const score = getGuessScore(guess, allPaths, legacyStatesGraph);
 				if (score === 'green') return '🟩';
 				if (score === 'orange') return '🟧';
 				return '🟥';

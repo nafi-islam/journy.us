@@ -93,3 +93,21 @@ test('bug 3: skipping a day breaks the current streak', async ({ page }) => {
 		.first();
 	await expect(currentStreak).toHaveText('2', { timeout: 2_000 });
 });
+
+// bug 10: the stats modal shares the *current* guesses, so after moving on to practice it
+// shared the practice squares instead of the daily result
+test('bug 10: sharing after practice still shares the daily result', async ({ page }) => {
+	test.fail(!process.env.SHOW_V1_BUGS, 'known v1 bug');
+
+	await openDaily(page);
+	for (const state of OPTIMAL_GUESSES) await guess(page, state);
+	await closeModal(page);
+	await mainButton(page).click();
+	await expect(page.getByText('your journy now is...')).toBeVisible();
+	await guess(page, 'Maine');
+
+	await openHeaderModal(page, 'stats');
+	await page.getByRole('button', { name: 'Share' }).click();
+	const clipboard = await page.evaluate(() => navigator.clipboard.readText());
+	expect(clipboard).toBe('journy #553 3/6\n🟩🟩🟩\nhttps://www.journy.us/');
+});

@@ -2,10 +2,14 @@ export interface StatesGraph {
 	[key: string]: string[];
 }
 
+// two states are neighbors when they share a land boundary line
+// water-only boundaries (e.g. michigan-minnesota) and the four corners (states that only
+// touch at a point) don't count. see CLAUDE.md "graph"
+
 // prettier-ignore
 export const statesGraph: StatesGraph = {
     Alabama: ["Tennessee", "Georgia", "Florida", "Mississippi"],
-    Arizona: ["California", "Nevada", "Utah", "Colorado", "New Mexico"],
+    Arizona: ["California", "Nevada", "Utah", "New Mexico"],
     Arkansas: [
       "Missouri",
       "Tennessee",
@@ -21,7 +25,6 @@ export const statesGraph: StatesGraph = {
       "Kansas",
       "Oklahoma",
       "New Mexico",
-      "Arizona",
       "Utah",
     ],
     Connecticut: ["New York", "Massachusetts", "Rhode Island"],

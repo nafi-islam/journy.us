@@ -10,10 +10,14 @@
 		targetState,
 		showPlayAgain,
 		practiceMode,
-		showPractice
+		showPractice,
+		puzzleGraph
 	} from '../stores';
-	import { statesGraph } from '../statesGraph';
-	import { formatStateName, gameStatus, resetGame } from '../utils';
+	import { formatStateName } from '$lib/engine/game';
+	import { isWin } from '$lib/engine/rules';
+	import { utcDateKey } from '$lib/engine/dates';
+	import { saveDailyProgress as saveProgress } from '$lib/engine/storage';
+	import { gameStatus, resetGame } from '../utils';
 	import { derived, get } from 'svelte/store';
 
 	// $: hasPlayedToday = $showPractice && !$practiceMode;
@@ -67,16 +71,11 @@
 	function saveDailyProgress() {
 		if (get(practiceMode)) return;
 
-		const today = new Date().toISOString().split('T')[0];
-		const stats = JSON.parse(localStorage.getItem('journyDailyStats') || '{}');
-
-		stats[today] = {
+		saveProgress(utcDateKey(), {
 			guessedStates: get(guessedStates),
 			guessCount: get(guessCount),
-			won: $gameStatus.status === 'win' || $gameStatus.status === 'sub-win'
-		};
-
-		localStorage.setItem('journyDailyStats', JSON.stringify(stats));
+			won: isWin($gameStatus.status)
+		});
 	}
 
 	// Submit Guess with Validation & Toast Notification
@@ -84,8 +83,8 @@
 		if (inputPopupError.trim() !== '') {
 			const formattedGuess = formatStateName(inputPopupError);
 
-			// Check if the formatted guess exists in statesGraph
-			if (!(formattedGuess in statesGraph)) {
+			// Check if the formatted guess exists in the graph
+			if (!(formattedGuess in $puzzleGraph)) {
 				// Show a toast notification if invalid
 				errorToastToggle();
 				return;
@@ -105,7 +104,7 @@
 	}
 
 	// Filtered list: remove startState, targetState, and guessedStates
-	$: filteredStates = Object.keys(statesGraph)
+	$: filteredStates = Object.keys($puzzleGraph)
 		.filter(
 			(state) => state !== $startState && state !== $targetState && !$guessedStates.includes(state)
 		)

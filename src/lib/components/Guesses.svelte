@@ -1,13 +1,14 @@
 <script lang="ts">
-	import { findAllShortestPaths, getGuessScore } from '$lib/utils';
-	import { guessedStates, startState, targetState } from '../stores';
+	import { findAllShortestPaths } from '$lib/engine/search';
+	import { getGuessScore } from '$lib/engine/rules';
+	import { guessedStates, startState, targetState, puzzleGraph } from '../stores';
 
 	let labeledGuesses = [];
 
-	$: allShortestPaths = findAllShortestPaths($startState, $targetState);
+	$: allShortestPaths = findAllShortestPaths($startState, $targetState, $puzzleGraph);
 
 	$: labeledGuesses = $guessedStates.map((guess) => {
-		const score = getGuessScore(guess, allShortestPaths);
+		const score = getGuessScore(guess, allShortestPaths, $puzzleGraph);
 		const iconMap = {
 			green: '🟩',
 			orange: '🟧',

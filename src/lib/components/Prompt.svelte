@@ -17,9 +17,15 @@
 		dailyGuessedStates,
 		dailyGuessCount,
 		showPractice,
-		modalShownPractice
+		modalShownPractice,
+		puzzleGraph
 	} from '../stores';
-	import { checkLoadingComplete, gameStatus, getRandomStatePair } from '$lib/utils';
+	import { checkLoadingComplete } from '$lib/utils';
+	import { getRandomStatePair } from '$lib/engine/practice';
+	import { statesGraph } from '$lib/engine/statesGraph';
+	import { legacyStatesGraph, type LegacyChallenges } from '$lib/engine/legacy';
+	import { utcDateKey } from '$lib/engine/dates';
+	import { loadDailyProgress } from '$lib/engine/storage';
 	import { get } from 'svelte/store';
 
 	function resetGameState() {
@@ -32,15 +38,17 @@
 	async function setDailyChallenge() {
 		resetGameState();
 
-		const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+		const today = utcDateKey(); // YYYY-MM-DD format
 
 		try {
 			const res = await fetch('/validChallenges.json');
-			const challenges = await res.json();
+			const challenges: LegacyChallenges = await res.json();
 
 			const todayChallenge = challenges[today];
 
 			if (todayChallenge) {
+				// legacy puzzles were generated with the v1 graph (four corners included)
+				puzzleGraph.set(legacyStatesGraph);
 				startState.set(todayChallenge.dailyStartState);
 				targetState.set(todayChallenge.dailyTargetState);
 				pathLength.set(todayChallenge.dailyPathLength);
@@ -51,8 +59,7 @@
 				dailyPathLength.set(todayChallenge.dailyPathLength);
 				dailyShortestPath.set(todayChallenge.shortestPath);
 
-				const consoleAnswer = todayChallenge.shortestPath.join(' -> ');
-				//console.log('debug, path:', consoleAnswer);
+				// debug: console.log('daily path:', todayChallenge.shortestPath.join(' -> '));
 
 				startState.set(get(dailyStartState));
 				targetState.set(get(dailyTargetState));
@@ -74,6 +81,7 @@
 		targetState.set('');
 		guessedStates.set([]);
 
+		puzzleGraph.set(statesGraph);
 		startState.set(start);
 		targetState.set(target);
 		pathLength.set(length);
@@ -83,10 +91,7 @@
 
 	async function loadDailyChallengeAndProgress() {
 		// sets practice button when switching between practice and daily mode
-		const today = new Date().toISOString().split('T')[0];
-		const stats = JSON.parse(localStorage.getItem('journyDailyStats') || '{}');
-
-		const todayProgress = stats[today];
+		const todayProgress = loadDailyProgress(utcDateKey());
 		showPractice.set(!!todayProgress);
 
 		await setDailyChallenge();
@@ -100,17 +105,10 @@
 	}
 
 	async function restoreDailyProgress() {
-		const today = new Date().toISOString().split('T')[0];
-		const stats = JSON.parse(localStorage.getItem('journyDailyStats') || '{}');
-
-		// Clean up old progress
-		for (const date in stats) {
-			if (date !== today) delete stats[date];
-		}
-		localStorage.setItem('journyDailyStats', JSON.stringify(stats));
+		// loads today's progress and cleans up older days
+		const todayProgress = loadDailyProgress(utcDateKey());
 
 		// Restore today’s progress
-		const todayProgress = stats[today];
 		if (todayProgress && !$practiceMode) {
 			// Store for reference (fine)
 			dailyGuessedStates.set(todayProgress.guessedStates || []);

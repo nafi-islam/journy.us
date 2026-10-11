@@ -3,7 +3,9 @@
 	import type { ModalSettings } from '@skeletonlabs/skeleton';
 	import PracticeModal from '$lib/components/PracticeModal.svelte';
 	import DailyChallengeModal from '$lib/components/DailyChallengeModal.svelte';
-	import { loadStats, saveStats } from '$lib/statistics';
+	import { recordDailyResult as saveDailyResult } from '$lib/engine/storage';
+	import { utcDateKey } from '$lib/engine/dates';
+	import { isWin } from '$lib/engine/rules';
 	import {
 		dailyPathLength,
 		guessedStates,
@@ -78,17 +80,12 @@
 	}
 
 	function recordDailyResult() {
-		const today = new Date().toISOString().split('T')[0];
-		const stats = loadStats();
-
-		stats[today] = {
-			won: $gameStatus.status === 'win' || $gameStatus.status === 'sub-win',
+		saveDailyResult(utcDateKey(), {
+			won: isWin($gameStatus.status),
 			guessCount: $guessedStates.length,
 			shortestPathLength: get(dailyPathLength),
 			isDaily: true
-		};
-
-		saveStats(stats);
+		});
 	}
 
 	$: if (

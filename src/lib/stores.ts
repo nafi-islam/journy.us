@@ -1,8 +1,12 @@
 import { writable } from 'svelte/store';
+import { statesGraph, type StatesGraph } from './engine/statesGraph';
 
 export const startState = writable<string>('');
 export const targetState = writable<string>('');
 export const guessedStates = writable<string[]>([]);
+
+// the graph the current puzzle is played on (legacy daily puzzles use the v1 graph)
+export const puzzleGraph = writable<StatesGraph>(statesGraph);
 
 export const guessCount = writable<number>(0);
 export const initialGuessesRemaining = writable<number>(0);
