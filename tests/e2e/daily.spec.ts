@@ -102,3 +102,13 @@ test('a brand new player sees 0% instead of NaN', async ({ page }) => {
 	await expect(page.getByText('0%')).toBeVisible();
 	await expect(page.getByText('NaN')).toHaveCount(0);
 });
+
+test('a finished daily still shows the practice button after a reload', async ({ page }) => {
+	await openDaily(page);
+	for (const state of OPTIMAL_GUESSES) await guess(page, state);
+	await expect(page.getByText('Challenge #553')).toBeVisible();
+
+	await page.reload();
+	await expect(guessChips(page)).toHaveCount(3);
+	await expect(mainButton(page)).toHaveText('Practice');
+});

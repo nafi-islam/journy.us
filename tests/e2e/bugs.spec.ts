@@ -44,11 +44,9 @@ test('bug 2: practice never reuses the daily puzzle', async ({ page }) => {
 	});
 });
 
-// bug 9: after a mid-game reload the button says "practice" because Prompt sets showPractice
-// whenever today has any saved progress (finished or not)
+// bug 9 (fixed in m1): after a mid-game reload the button said "practice" because Prompt set
+// showPractice whenever today had any saved progress (finished or not)
 test('bug 9: the guess button survives a mid-game reload', async ({ page }) => {
-	test.fail(!process.env.SHOW_V1_BUGS, 'known v1 bug');
-
 	await openDaily(page);
 	await guess(page, 'Wyoming');
 	await expect(guessChips(page)).toHaveCount(1);

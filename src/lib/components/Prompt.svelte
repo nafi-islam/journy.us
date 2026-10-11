@@ -26,6 +26,7 @@
 	import { legacyStatesGraph, type LegacyChallenges } from '$lib/engine/legacy';
 	import { utcDateKey } from '$lib/engine/dates';
 	import { loadDailyProgress } from '$lib/engine/storage';
+	import { evaluateGame, isGameOver } from '$lib/engine/rules';
 	import { get } from 'svelte/store';
 
 	function resetGameState() {
@@ -90,12 +91,20 @@
 	}
 
 	async function loadDailyChallengeAndProgress() {
-		// sets practice button when switching between practice and daily mode
-		const todayProgress = loadDailyProgress(utcDateKey());
-		showPractice.set(!!todayProgress);
-
 		await setDailyChallenge();
 		restoreDailyProgress();
+
+		// sets practice button when switching between practice and daily mode
+		// only a *finished* daily counts as played today (v1 bug 9: any saved guess turned the
+		// guess button into practice after a reload)
+		const todayProgress = loadDailyProgress(utcDateKey());
+		const todayStatus = evaluateGame(
+			get(dailyStartState),
+			get(dailyTargetState),
+			todayProgress?.guessedStates ?? [],
+			get(puzzleGraph)
+		).status;
+		showPractice.set(!!todayProgress && isGameOver(todayStatus));
 
 		// Force reset from stored values
 		startState.set(get(dailyStartState));
