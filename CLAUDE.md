@@ -35,11 +35,12 @@ npm run test:unit  # vitest (engine / logic tests)
 npm run test:e2e   # playwright (browser flows, uses your installed google chrome)
 npm test           # unit tests, then e2e
 npm run puzzles -- --from 2026-11-01 --days 30   # preview upcoming dailies
+npm run map        # rebuild src/lib/map/mapData.ts (only if the projection / data changes)
 ```
 
-dev tip: whenever vite restarts itself (first `npm run dev` after a fresh install, or after you
-edit `vite.config.ts` / `svelte.config.js`), the page can fail with a postcss "unknown word"
-error for `+layout.svelte`. stop the dev server and start it again; it's not a code problem.
+dev tip: after editing `vite.config.ts`, restart the dev server. v1's setup could show a postcss
+"unknown word" error after vite restarted itself; v2 has no postcss config, but a restart is
+still the first thing to try if hot reload misbehaves.
 
 ## testing
 
@@ -49,7 +50,9 @@ error for `+layout.svelte`. stop the dev server and start it again; it's not a c
   `vite preview` on port 4173 and drive your installed google chrome. run `npm run test:e2e`.
   - the clock is frozen on **2026-10-11** (utc), whose daily is utah → tennessee
     (optimal 3: wyoming, nebraska, missouri). see `tests/e2e/helpers.ts`.
-  - the map is still fetched from jsdelivr in v1, so e2e tests need a network connection.
+  - tests find elements by accessible names and `data-testid`s (`guess-chip`, `main-button`,
+    `map`, `dialog-backdrop`, `stat-*`, `game-mode-switch`, `color-mode-switch`). skeleton 5
+    keeps closed dialogs in the page (hidden), so assert inside `openDialog(page)`.
   - `daily.spec.ts` pins the exact v1 localStorage shapes. don't loosen it.
 - **known bugs** are written as the correct behavior and marked as expected failures
   (`it.fails` in vitest, `test.fail` in playwright). when you fix one, remove the marker so it
@@ -58,28 +61,40 @@ error for `+layout.svelte`. stop the dev server and start it again; it's not a c
 - **deploy gate**: `vercel.json` runs `npm run test:unit && npm run build`, so a failing unit
   test blocks a vercel deploy (there is no github actions ci).
 
-## tech stack (v1, current `main`)
+## tech stack (v2)
 
-- **sveltekit 2 + svelte 4** — ui framework. `.svelte` files hold markup, a
-  `<script lang="ts">` block (typescript) and a `<style>` block.
-- **skeleton ui 2** (vintage theme) on **tailwind css 3** — components (modals, toasts,
-  autocomplete, accordion, light switch) and styling.
-- **d3-geo + topojson-client** — draws the us map from the `us-atlas` topojson (fetched from
-  jsdelivr at runtime) with the albers usa projection.
-- **canvas-confetti**, **tabler icons**, **vercel analytics + speed insights**.
-- **vercel** hosts the site (`@sveltejs/adapter-vercel`).
+- **sveltekit 3 + svelte 5** (runes) — ui framework. a `.svelte` file holds markup, a
+  `<script lang="ts">` block (typescript) and optionally a `<style>` block. state uses runes
+  (`$state`, `$derived`, `$props`). sveltekit config lives in `vite.config.ts` (there is no
+  `svelte.config.js` in sveltekit 3).
+- **skeleton 5** (`@skeletonlabs/skeleton` + `@skeletonlabs/skeleton-svelte`, vintage theme) on
+  **tailwind css 4** — components (Dialog, Toast, Combobox, Switch, Accordion) and styling.
+  tailwind 4 is configured in css (`src/app.css`), not a `tailwind.config` file.
+- **vite 8**, **typescript 6**, **vitest 4** (unit), **playwright** (browser), **eslint 10**,
+  **prettier** (with the svelte + tailwind plugins).
+- **the map is pre-built**: `scripts/build-map.ts` projects `us-atlas` (albers usa, same as v1)
+  with d3-geo once and writes svg paths to `src/lib/map/mapData.ts`. d3 is a dev tool only.
+- **canvas-confetti**, **tabler icons** (`@tabler/icons-svelte-runes`), self-hosted fonts via
+  **fontsource** (gloria hallelujah for the logo, abril fatface for headings).
+- **vercel analytics + speed insights** via vercel's plain script snippet in `src/app.html`.
+- **vercel** hosts the site. every page is **prerendered** (`src/routes/+layout.ts`), so it is
+  served as static files from the cdn; the game runs in the browser.
 - no backend, no database. all player data lives in the browser's `localStorage`.
 
-the v2 refactor upgrades this stack; see "v2 refactor" below.
+imports inside `src` use the `#lib` alias (node subpath imports, declared in `package.json`)
+**with the file extension**, e.g. `import { game } from '#lib/game.svelte.ts'`. the engine's
+own files import each other with relative paths.
 
 ## project structure
 
 ```
 src/
-  app.html, app.postcss, app.d.ts
+  app.html              html shell: pre-paint light / dark script, analytics snippet
+  app.css               tailwind + skeleton imports, the journy theme tweaks, small animations
   routes/
-    +layout.svelte      header (stats / settings / help buttons), modals, toasts, analytics
-    +page.svelte        Prompt → Map → GuessInput → Guesses → GameStatus
+    +layout.ts          prerender = true (static site)
+    +layout.svelte      header (stats / settings / help buttons), lazy modals, toasts, footer
+    +page.svelte        Prompt → Map → GuessInput → Guesses, starts the game on mount
   lib/
     engine/             the game logic, plain typescript (no svelte). each file has a .test.ts
       statesGraph.ts      adjacency list of the 48 states
@@ -92,22 +107,28 @@ src/
       dates.ts            date keys, day math, challenge numbers
       stats.ts            played / win % / streaks / distribution (computeStats)
       storage.ts          localStorage (journyStats, journyDailyStats, version)
-    utils.ts            svelte glue: the gameStatus derived store, resetGame, loading sync
-    stores.ts           svelte stores (shared state). m3 replaces these with runes
+    game.svelte.ts      the ui's game state (runes): puzzle, guesses, mode, open dialog.
+                        calls the engine; replaces v1's stores + Prompt/GameStatus logic
+    map/mapData.ts      generated svg paths + centroids for every state (npm run map)
+    theme.ts            light / dark mode (keeps skeleton v2's localStorage keys)
+    toaster.ts          app-wide toasts
+    confetti.ts         the win confetti
     components/
-      Prompt.svelte         loads the daily (json) or a practice puzzle, restores progress
-      Map.svelte            renders the map, colors start / target / guesses
-      GuessInput.svelte     autocomplete input + guess / practice / play again button
+      Prompt.svelte         "your journy today is... to go from x to y"
+      Map.svelte            the map (daily: only start / target / guesses; practice: all)
+      GuessInput.svelte     autocomplete (Combobox) + guess / practice / play again button
       Guesses.svelte        guess chips with 🟩🟧🟥
-      GameStatus.svelte     no ui: confetti, result modal, records the daily result
-      DailyChallengeModal.svelte  stats, result, share
+      Modal.svelte          shared dialog frame (skeleton Dialog)
+      Modals.svelte         all modals, loaded lazily after the first paint
+      DailyChallengeModal.svelte  stats, today's result, share
       PracticeModal.svelte  your route vs shortest route
       HelpModal / SettingsModal / Footer
-  lib/**/*.test.ts      vitest unit tests (next to the code they test)
 static/
-  validChallenges.json  v1 daily puzzles 2025-04-07 → 2030-04-05 (generated)
-generateValidChallenges/  standalone ts-node script that generated the json
-scripts/puzzles.ts      prints upcoming daily puzzles (run with tsx)
+  validChallenges.json  v1 daily puzzles (used until SWITCH_DATE, then deleted)
+generateValidChallenges/  v1's standalone generator for the json (deleted after SWITCH_DATE)
+scripts/
+  puzzles.ts            prints upcoming daily puzzles (npm run puzzles)
+  build-map.ts          builds src/lib/map/mapData.ts (npm run map)
 tests/e2e/              playwright browser tests (helpers.ts + *.spec.ts)
 playwright.config.ts    e2e config (builds, previews on :4173, uses google chrome)
 vercel.json             deploy gate: unit tests run before the build
@@ -152,8 +173,8 @@ guesses can be in any order; they only need to connect start to target.
 4. otherwise **playing**
 
 `checkGuess` (`engine/game.ts`) refuses a guess when the game is over, the name isn't a state,
-it was already guessed, or it's the start / target. `utils.ts` wraps `evaluateGame` in the
-`gameStatus` derived store for the svelte components.
+it was already guessed, or it's the start / target. `game.svelte.ts` exposes `evaluateGame`'s
+result as `game.status` (a `$derived` rune) for the svelte components.
 
 ### guess guide (scoring)
 
@@ -242,9 +263,10 @@ confetti). **keep v1's code and logic wherever possible.**
 - **m2 — daily from the date** ✅: seeded shuffle over every valid pair, so puzzles never run
   out. `SWITCH_DATE` keeps v1 puzzles until the cutover; after it, local-midnight rollover.
   the json + generator folder get deleted once the switch date has passed.
-- **m3 — platform upgrade + ui uplift**: latest sveltekit, svelte 5 (runes), tailwind 4,
-  **skeleton 5** (kept on purpose, custom theme from the vintage preset), prerendered static
-  site, map pre-built into svg at build time.
+- **m3 — platform upgrade + ui uplift** ✅: sveltekit 3, svelte 5 (runes), tailwind 4,
+  **skeleton 5** (kept on purpose, vintage preset + journy tweaks), prerendered static site,
+  map pre-built into svg (11 kb gzipped), lazy-loaded modals, labelled buttons. lighthouse
+  (local): performance 94, accessibility 100, seo 100 (live v1: 84 / 89 / 90).
 - **m4 — release**: preview deploy, real-device testing, v1 save import check, switch date.
 
 ### feature track (after v2.0)
@@ -322,6 +344,6 @@ these follow the history of the repo. please keep them.
 
 - use `console.log` / `console.group` while working; remove them (or leave them commented out)
   before committing, as in `chore: missing function headers and print clean ups`.
-- to inspect a daily puzzle locally, read it from the browser console:
-  `await fetch('/validChallenges.json').then(r => r.json()).then(c => c['YYYY-MM-DD'])`.
+- to see any day's daily puzzle (and its answer): `npm run puzzles -- --from YYYY-MM-DD --days 1`.
+- svelte 5 devtools: `$inspect(value)` logs a rune whenever it changes (remove before committing).
 - reset your local game state with `localStorage.clear()` in the browser console.
