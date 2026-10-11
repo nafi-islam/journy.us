@@ -7,10 +7,9 @@
 		dailyTargetState,
 		practiceMode,
 		showPlayAgain,
-		dailyGuessedStates,
-		guessedStates
+		dailyGuessedStates
 	} from '../stores';
-	import { loadStats } from '$lib/engine/storage';
+	import { loadDailyProgress, loadStats } from '$lib/engine/storage';
 	import { onMount } from 'svelte';
 	import { ChartBar } from 'tabler-icons-svelte';
 	import { resetGame } from '$lib/utils';
@@ -73,7 +72,9 @@
 		const totalGuesses = (statsForToday?.shortestPathLength ?? 3) + 3;
 		//console.log('totalGuesses', totalGuesses);
 
-		const guessesToShare = get(guessedStates);
+		// share the saved daily guesses, not the board on screen (v1 bug 10: after moving on to
+		// practice, the practice guesses were shared)
+		const guessesToShare = loadDailyProgress(utcDateKey())?.guessedStates ?? [];
 		const start = get(dailyStartState);
 		const target = get(dailyTargetState);
 

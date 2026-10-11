@@ -87,11 +87,9 @@ test('bug 3: skipping a day breaks the current streak', async ({ page }) => {
 	await expect(currentStreak).toHaveText('2', { timeout: 2_000 });
 });
 
-// bug 10: the stats modal shares the *current* guesses, so after moving on to practice it
-// shared the practice squares instead of the daily result
+// bug 10 (fixed in m1): the stats modal shared the *current* guesses, so after moving on to
+// practice it shared the practice squares instead of the daily result
 test('bug 10: sharing after practice still shares the daily result', async ({ page }) => {
-	test.fail(!process.env.SHOW_V1_BUGS, 'known v1 bug');
-
 	await openDaily(page);
 	for (const state of OPTIMAL_GUESSES) await guess(page, state);
 	await closeModal(page);
