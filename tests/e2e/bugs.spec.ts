@@ -58,10 +58,8 @@ test('bug 9: the guess button survives a mid-game reload', async ({ page }) => {
 	await expect(mainButton(page)).toHaveText('Guess (2 / 6)', { timeout: 2_000 });
 });
 
-// bug 3: the streak only resets on a loss, skipped days are ignored
+// bug 3 (fixed in m1): the streak only reset on a loss, skipped days were ignored
 test('bug 3: skipping a day breaks the current streak', async ({ page }) => {
-	test.fail(!process.env.SHOW_V1_BUGS, 'known v1 bug');
-
 	// wins on 10-07, 10-08, 10-10 and 10-11 (10-09 skipped). expected current streak: 2
 	await page.addInitScript(() => {
 		const win = (guessCount: number) => ({

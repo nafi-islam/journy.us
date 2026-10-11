@@ -10,6 +10,7 @@ import {
 	guessChips,
 	mainButton,
 	openDaily,
+	openHeaderModal,
 	readStorage
 } from './helpers';
 
@@ -93,4 +94,11 @@ test('share copies the v1 text format', async ({ page }) => {
 
 	const clipboard = await page.evaluate(() => navigator.clipboard.readText());
 	expect(clipboard).toBe('journy #553 3/6\n🟩🟩🟩\nhttps://www.journy.us/');
+});
+
+test('a brand new player sees 0% instead of NaN', async ({ page }) => {
+	await openDaily(page);
+	await openHeaderModal(page, 'stats');
+	await expect(page.getByText('0%')).toBeVisible();
+	await expect(page.getByText('NaN')).toHaveCount(0);
 });

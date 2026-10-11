@@ -18,6 +18,7 @@
 	import { getGuessScore } from '$lib/engine/rules';
 	import { legacyStatesGraph } from '$lib/engine/legacy';
 	import { utcDateKey } from '$lib/engine/dates';
+	import { computeStats, type AggregateStats, type DailyResult } from '$lib/engine/stats';
 	import { Copy } from 'tabler-icons-svelte';
 	import { get } from 'svelte/store';
 
@@ -44,52 +45,18 @@
 		//console.log('daily challenge modal triggered');
 	}
 
-	let statsForToday: { won: any; guessCount: any; shortestPathLength: any } | null = null;
-	let aggregateStats = {
-		gamesPlayed: 0,
-		winRate: 0,
-		currentStreak: 0,
-		maxStreak: 0,
-		guessDistribution: Array(8).fill(0)
-	};
+	let statsForToday: DailyResult | null = null;
+	let aggregateStats: AggregateStats = computeStats({}, utcDateKey());
 
 	onMount(() => {
 		const today = utcDateKey();
 		const stats = loadStats();
 
 		// Show only if played today
-		statsForToday = stats[today];
+		statsForToday = stats[today] ?? null;
 
-		// Compute all-time stats
-		const dates = Object.keys(stats).sort();
-		let streak = 0;
-		let maxStreak = 0;
-		let winCount = 0;
-
-		for (const date of dates) {
-			const entry = stats[date];
-			if (!entry) continue;
-
-			aggregateStats.gamesPlayed++;
-
-			if (entry.won && entry.isDaily) {
-				winCount++;
-				streak++;
-
-				const index = entry.guessCount - 1;
-				if (index >= 0 && index < aggregateStats.guessDistribution.length) {
-					aggregateStats.guessDistribution[index]++;
-				}
-			} else {
-				streak = 0;
-			}
-
-			if (streak > maxStreak) maxStreak = streak;
-		}
-
-		aggregateStats.winRate = Math.round((winCount / aggregateStats.gamesPlayed) * 100);
-		aggregateStats.currentStreak = streak;
-		aggregateStats.maxStreak = maxStreak;
+		// Compute all-time stats (streaks need consecutive days, see engine/stats.ts)
+		aggregateStats = computeStats(stats, today);
 	});
 
 	// const toastStore = getToastStore();
