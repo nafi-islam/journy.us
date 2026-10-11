@@ -13,7 +13,9 @@ import {
 	openDaily,
 	openHeaderModal,
 	readStorage,
-	toggleGameMode
+	toggleGameMode,
+	statTile,
+	openDialog
 } from './helpers';
 
 // bug 1 (fixed in m1): the enter key in the guess input bypassed the button logic after the
@@ -21,7 +23,7 @@ import {
 test('bug 1: guesses are rejected after the daily is finished', async ({ page }) => {
 	await openDaily(page);
 	for (const state of OPTIMAL_GUESSES) await guess(page, state);
-	await expect(page.getByText('Challenge #553')).toBeVisible();
+	await expect(openDialog(page).getByText('Challenge #553')).toBeVisible();
 	await closeModal(page);
 
 	await guess(page, 'Colorado');
@@ -80,10 +82,7 @@ test('bug 3: skipping a day breaks the current streak', async ({ page }) => {
 	await openDaily(page);
 	await openHeaderModal(page, 'stats');
 
-	const currentStreak = page
-		.locator('div.flex-1', { hasText: 'Current Streak' })
-		.locator('p')
-		.first();
+	const currentStreak = statTile(page, 'Current Streak');
 	await expect(currentStreak).toHaveText('2', { timeout: 2_000 });
 });
 

@@ -10,14 +10,15 @@ import {
 	mainButton,
 	openDaily,
 	readStorage,
-	toggleGameMode
+	toggleGameMode,
+	mapStates
 } from './helpers';
 
 test('after the daily, practice starts a new puzzle with the full map', async ({ page }) => {
 	await openDaily(page);
 
 	// the daily map only draws the start and target
-	await expect(page.locator('.map-container svg path')).toHaveCount(2);
+	await expect(mapStates(page)).toHaveCount(2);
 
 	for (const state of OPTIMAL_GUESSES) await guess(page, state);
 	await closeModal(page);
@@ -25,7 +26,7 @@ test('after the daily, practice starts a new puzzle with the full map', async ({
 
 	await expect(page.getByText('your journy now is...')).toBeVisible();
 	await expect(guessChips(page)).toHaveCount(0);
-	expect(await page.locator('.map-container svg path').count()).toBeGreaterThanOrEqual(48);
+	expect(await mapStates(page).count()).toBeGreaterThanOrEqual(48);
 });
 
 test('practice guesses are not saved to the daily storage', async ({ page }) => {

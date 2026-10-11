@@ -1,9 +1,16 @@
 <script lang="ts">
-	import { Accordion, AccordionItem, getModalStore } from '@skeletonlabs/skeleton';
-
-	const modalStore = getModalStore();
+	// how to play, guess guide, credits, feedback and patch notes
+	import { Accordion } from '@skeletonlabs/skeleton-svelte';
+	import { slide } from 'svelte/transition';
+	import IconChevronDown from '@tabler/icons-svelte-runes/icons/chevron-down';
+	import Modal from './Modal.svelte';
 
 	const patchNotes = [
+		{
+			date: 'v2',
+			description:
+				'a fresh coat of paint, endless daily challenges, local-midnight dailies, faster loading, and bug fixes (streaks, sharing after practice and more)'
+		},
 		{
 			date: 'april 7th, 2025',
 			description: 'added a daily challenge mode, user stats, guess guide, and share feature'
@@ -13,144 +20,102 @@
 			description: 'initial public release of journy 🎉'
 		}
 	];
+
+	const sections = ['guide', 'credits', 'feedback', 'patch-notes'] as const;
+	const titles: Record<(typeof sections)[number], string> = {
+		guide: '🏆 Guess Guide',
+		credits: '🎭 Credits',
+		feedback: '✉️ Feedback',
+		'patch-notes': '📦 Patch Notes'
+	};
 </script>
 
-<!-- Help Modal Content -->
-<div class="modal-container p-6 rounded-xl shadow-lg bg-surface-100 dark:bg-surface-800">
-	<div class="font-bold text-2xl">🗺️ Welcome to Journy!</div>
-
+<Modal name="help" title="🗺️ Welcome to Journy!">
 	<!-- Game Instructions -->
-	<div class="text-lg space-y-4 p-4">
-		<strong>How to Play</strong>
+	<div class="space-y-3">
+		<h3 class="font-semibold">How to Play</h3>
 		<p>
-			Start at the randomly chosen <span class="text-primary-500 font-semibold">start state</span>
+			Start at the randomly chosen <span class="font-semibold text-primary-500">start state</span>
 			and guess neighboring states to reach the
-			<span class="text-secondary-600 font-semibold">target state</span>.
+			<span class="font-semibold text-secondary-600-400">target state</span>.
 		</p>
 		<p>You have a limited number of guesses – use them wisely!</p>
+		<p class="text-sm opacity-70">
+			States are neighbors when they share a border line. Corners don't count (the four corners only
+			touch at a point).
+		</p>
 	</div>
 
-	<!-- Accordion for Credits & Feedback -->
-
-	<Accordion class="card p-4 text-token shadow-md bg-surface-100 dark:bg-surface-800">
-		<!-- Guess Guide Section -->
-		<AccordionItem open>
-			<svelte:fragment slot="summary">
-				<p class="font-bold">🏆 Guess Guide</p>
-			</svelte:fragment>
-			<svelte:fragment slot="content">
-				<ul class="text-sm space-y-2 text-surface-700 dark:text-surface-300">
-					<li>
-						<span class="font-bold">🟩</span>
-						This state is part of a possible shortest path from start to target.
-					</li>
-					<li>
-						<span class="font-bold">🟧</span>
-						This state is connected to a state on a possible shortest path.
-					</li>
-					<li>
-						<span class="font-bold">🟥</span>
-						This state is not connected and is out of the way.
-					</li>
-				</ul>
-			</svelte:fragment>
-		</AccordionItem>
-
-		<!-- Credits Section -->
-		<AccordionItem>
-			<svelte:fragment slot="summary">
-				<p class="font-bold">🎭 Credits</p>
-			</svelte:fragment>
-			<svelte:fragment slot="content">
-				<span class="flex items-center gap-1 text-sm text-surface-700 dark:text-surface-300">
-					Developed by
-					<a
-						href="https://nafiislam.com"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="journy-text text-transparent bg-clip-text box-decoration-clone bg-gradient-to-br
-							from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 transition duration-200 outlined-text"
-					>
-						NAFI
-					</a>
-				</span>
-				<p class="text-sm text-surface-700 dark:text-surface-300">
-					Journy was developed using Svelte and Skeleton UI for the user interface and overall
-					design, d3.js for map rendering, and Vite for the build tool.
-				</p>
-				<p class="text-sm text-surface-700 dark:text-surface-300">
-					You can contribute on GitHub, <a
-						href="https://github.com/nafi-islam/journy.us"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="underline hover:text-primary-500 dark:hover:text-primary-500">here!</a
-					>
-				</p>
-			</svelte:fragment>
-		</AccordionItem>
-
-		<!-- Feedback Section -->
-		<AccordionItem>
-			<svelte:fragment slot="summary">
-				<p class="font-bold">✉️ Feedback</p>
-			</svelte:fragment>
-			<svelte:fragment slot="content">
-				<p class="text-sm text-surface-700 dark:text-surface-300">
-					Have suggestions or found a bug? Let me know by sending an <a
-						href="mailto:nafi.islam321@gmail.com"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="underline hover:text-primary-500 dark:hover:text-primary-500">email!</a
-					>
-				</p>
-			</svelte:fragment>
-		</AccordionItem>
-
-		<!-- Patch Notes Section -->
-		<AccordionItem>
-			<svelte:fragment slot="summary">
-				<p class="font-bold">📦 Patch Notes</p>
-			</svelte:fragment>
-			<svelte:fragment slot="content">
-				<ul class="list-disc pl-5 text-sm space-y-1 text-surface-700 dark:text-surface-300">
-					{#each patchNotes as note}
-						<li>
-							<strong>{note.date}</strong> – {note.description}
-						</li>
-					{/each}
-				</ul>
-			</svelte:fragment>
-		</AccordionItem>
+	<!-- Accordion for Guess Guide, Credits, Feedback & Patch Notes -->
+	<Accordion defaultValue={['guide']} multiple class="card bg-surface-100-900 p-2">
+		{#each sections as section, i (section)}
+			{#if i !== 0}
+				<hr class="hr" />
+			{/if}
+			<Accordion.Item value={section}>
+				<Accordion.ItemTrigger class="flex items-center justify-between gap-2 font-bold">
+					{titles[section]}
+					<Accordion.ItemIndicator class="group">
+						<IconChevronDown class="size-5 transition group-data-[state=open]:rotate-180" />
+					</Accordion.ItemIndicator>
+				</Accordion.ItemTrigger>
+				<Accordion.ItemContent>
+					{#snippet element(attributes)}
+						{#if !attributes.hidden}
+							<div {...attributes} transition:slide={{ duration: 150 }} class="space-y-2 text-sm">
+								{#if section === 'guide'}
+									<ul class="space-y-2">
+										<li>🟩 This state is part of a possible shortest path from start to target.</li>
+										<li>🟧 This state is connected to a state on a possible shortest path.</li>
+										<li>🟥 This state is not connected and is out of the way.</li>
+									</ul>
+								{:else if section === 'credits'}
+									<p>
+										Developed by
+										<a
+											href="https://nafiislam.com"
+											target="_blank"
+											rel="noopener noreferrer"
+											class="bg-gradient-to-br from-red-500 to-yellow-500 bg-clip-text font-hand font-bold text-transparent"
+										>
+											NAFI
+										</a>
+									</p>
+									<p>
+										Journy is built with Svelte, SvelteKit and Skeleton for the user interface and
+										overall design, and d3.js to prepare the map.
+									</p>
+									<p>
+										You can contribute on GitHub,
+										<a
+											href="https://github.com/nafi-islam/journy.us"
+											target="_blank"
+											rel="noopener noreferrer"
+											class="anchor underline">here!</a
+										>
+									</p>
+								{:else if section === 'feedback'}
+									<p>
+										Have suggestions or found a bug? Let me know by sending an
+										<a
+											href="mailto:nafi.islam321@gmail.com"
+											target="_blank"
+											rel="noopener noreferrer"
+											class="anchor underline">email!</a
+										>
+									</p>
+								{:else}
+									<ul class="list-disc space-y-1 pl-5">
+										{#each patchNotes as note (note.date)}
+											<li><strong>{note.date}</strong> – {note.description}</li>
+										{/each}
+									</ul>
+								{/if}
+							</div>
+						{/if}
+					{/snippet}
+				</Accordion.ItemContent>
+			</Accordion.Item>
+		{/each}
 	</Accordion>
-
-	<!-- Button Section -->
-	<div class="modal-footer">
-		<button class="btn variant-ghost-surface" on:click={() => modalStore.close()}>Close</button>
-	</div>
-</div>
-
-<style>
-	@import url('https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap');
-
-	.journy-text {
-		font-family: 'Gloria Hallelujah', cursive;
-		font-size: 1rem;
-		font-weight: bold;
-	}
-
-	.outlined-text {
-		filter: drop-shadow(0.5px 0.5px 0 black) drop-shadow(-0.5px -0.5px 0 black);
-	}
-
-	.modal-container {
-		max-width: 600px;
-		margin: auto;
-		position: relative;
-	}
-
-	.modal-footer {
-		display: flex;
-		justify-content: flex-end;
-		padding-top: 1rem;
-	}
-</style>
+</Modal>

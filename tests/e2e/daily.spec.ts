@@ -10,8 +10,10 @@ import {
 	guessChips,
 	mainButton,
 	openDaily,
+	openDialog,
 	openHeaderModal,
-	readStorage
+	readStorage,
+	statTile
 } from './helpers';
 
 test('shows the daily puzzle with a budget of optimal + 3', async ({ page }) => {
@@ -26,8 +28,8 @@ test('an optimal win shows the result and writes the v1 localStorage contract', 
 	await openDaily(page);
 	for (const state of OPTIMAL_GUESSES) await guess(page, state);
 
-	await expect(page.getByText('Challenge #553')).toBeVisible();
-	await expect(page.getByText('Congratulations!')).toBeVisible();
+	await expect(openDialog(page).getByText('Challenge #553')).toBeVisible();
+	await expect(openDialog(page).getByText('Congratulations!')).toBeVisible();
 
 	// exact v1 shapes (see CLAUDE.md localStorage contract). v2 only adds optional fields:
 	// resultSeen marks that the result modal was shown (v1 ignores it)
@@ -49,9 +51,9 @@ test('a loss shows the shortest route and records the result', async ({ page }) 
 		await guess(page, state);
 	}
 
-	await expect(page.getByText('Better luck next time!')).toBeVisible();
+	await expect(openDialog(page).getByText('Better luck next time!')).toBeVisible();
 	await expect(
-		page.getByText('Utah ➡️ Wyoming ➡️ Nebraska ➡️ Missouri ➡️ Tennessee')
+		openDialog(page).getByText('Utah ➡️ Wyoming ➡️ Nebraska ➡️ Missouri ➡️ Tennessee')
 	).toBeVisible();
 	expect(await readStorage(page, 'journyStats')).toEqual({
 		[TEST_DATE_KEY]: { won: false, guessCount: 6, shortestPathLength: 3, isDaily: true }
@@ -101,14 +103,14 @@ test('share copies the v1 text format', async ({ page }) => {
 test('a brand new player sees 0% instead of NaN', async ({ page }) => {
 	await openDaily(page);
 	await openHeaderModal(page, 'stats');
-	await expect(page.getByText('0%')).toBeVisible();
-	await expect(page.getByText('NaN')).toHaveCount(0);
+	await expect(statTile(page, 'Win Rate')).toHaveText('0%');
+	await expect(statTile(page, 'Played')).toHaveText('0');
 });
 
 test('a finished daily still shows the practice button after a reload', async ({ page }) => {
 	await openDaily(page);
 	for (const state of OPTIMAL_GUESSES) await guess(page, state);
-	await expect(page.getByText('Challenge #553')).toBeVisible();
+	await expect(openDialog(page).getByText('Challenge #553')).toBeVisible();
 
 	await page.reload();
 	await expect(guessChips(page)).toHaveCount(3);
@@ -118,11 +120,11 @@ test('a finished daily still shows the practice button after a reload', async ({
 test('the result modal is not replayed after a reload', async ({ page }) => {
 	await openDaily(page);
 	for (const state of OPTIMAL_GUESSES) await guess(page, state);
-	await expect(page.getByText('Challenge #553')).toBeVisible();
+	await expect(openDialog(page).getByText('Challenge #553')).toBeVisible();
 	expect((await readStorage(page, 'journyDailyStats'))[TEST_DATE_KEY].resultSeen).toBe(true);
 
 	await page.reload();
 	await expect(guessChips(page)).toHaveCount(3);
 	await page.waitForTimeout(1_500); // the modal used to open 500ms after load
-	await expect(page.getByText('Challenge #553')).toHaveCount(0);
+	await expect(openDialog(page)).toHaveCount(0);
 });

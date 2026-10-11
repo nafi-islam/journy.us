@@ -2,7 +2,7 @@
 // arizona and colorado were neighbors (four corners). they must play exactly as before
 
 import { expect, test } from '@playwright/test';
-import { guess, mainButton, setClock } from './helpers';
+import { guess, mainButton, openDialog, setClock } from './helpers';
 
 test('a legacy daily that crosses the four corners plays as it did in v1', async ({ page }) => {
 	// 2026-10-17: pennsylvania -> arizona, optimal 5 through colorado -> arizona
@@ -15,6 +15,6 @@ test('a legacy daily that crosses the four corners plays as it did in v1', async
 		await guess(page, state);
 	}
 
-	await expect(page.getByText('Congratulations!')).toBeVisible();
-	await expect(page.getByText('in 5 guesses.')).toBeVisible();
+	await expect(openDialog(page).getByText('Congratulations!')).toBeVisible();
+	await expect(openDialog(page).getByText('in 5 guesses.')).toBeVisible();
 });

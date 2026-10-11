@@ -32,30 +32,48 @@ export async function guess(page: Page, state: string) {
 
 // Function to get the guess chips under "past guesses:"
 export function guessChips(page: Page) {
-	return page.locator('div.w-\\[140px\\]');
+	return page.getByTestId('guess-chip');
 }
 
 // Function to get the main button (guess / practice / play again)
 export function mainButton(page: Page) {
-	return page.getByRole('button', { name: /^(Guess|Practice|Play Again)/ });
+	return page.getByTestId('main-button');
 }
 
-// Function to get the modal backdrop (skeleton v2)
-function modalBackdrop(page: Page) {
-	return page.getByTestId('modal-backdrop');
+// Function to get the drawn map states
+export function mapStates(page: Page) {
+	return page.locator('[data-testid="map"] path');
 }
 
-// Function to open one of the header modals (they are icon buttons without labels in v1)
+// Function to get the open dialog (closed dialogs stay in the page, hidden)
+export function openDialog(page: Page) {
+	return page.getByRole('dialog').filter({ visible: true });
+}
+
+// Function to get the backdrop of the open dialog (skeleton 5 keeps closed dialogs hidden)
+function openBackdrop(page: Page) {
+	return page.getByTestId('dialog-backdrop').filter({ visible: true });
+}
+
+// Function to open one of the header modals (icon buttons labelled for screen readers)
 export async function openHeaderModal(page: Page, which: 'stats' | 'settings' | 'help') {
-	const index = { stats: 0, settings: 1, help: 2 }[which];
-	await page.locator('#shell-header button').nth(index).click();
-	await expect(modalBackdrop(page)).toBeVisible();
+	const label = { stats: 'statistics', settings: 'settings', help: 'how to play' }[which];
+	await page.getByRole('button', { name: label, exact: true }).click();
+	await expect(openBackdrop(page)).toHaveCount(1);
 }
 
 // Function to close whatever modal is open and wait for its fade-out to finish
 export async function closeModal(page: Page) {
 	await page.keyboard.press('Escape');
-	await expect(modalBackdrop(page)).toHaveCount(0);
+	await expect(openBackdrop(page)).toHaveCount(0);
+}
+
+// Function to read one of the stat tiles in the stats modal (played, win rate, streaks)
+export function statTile(
+	page: Page,
+	label: 'Played' | 'Win Rate' | 'Current Streak' | 'Max Streak'
+) {
+	return page.getByTestId(`stat-${label}`).locator('p').first();
 }
 
 // Function to read a localStorage key as json
@@ -64,9 +82,8 @@ export async function readStorage(page: Page, key: string) {
 }
 
 // Function to flip the game mode switch in the settings modal (daily <-> practice)
-// the game mode switch is the first switch in the modal (the second one is light / dark)
 export async function toggleGameMode(page: Page) {
 	await openHeaderModal(page, 'settings');
-	await page.getByRole('switch').first().click();
+	await page.getByTestId('game-mode-switch').click();
 	await closeModal(page);
 }

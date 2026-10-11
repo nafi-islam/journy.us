@@ -1,66 +1,66 @@
 <script lang="ts">
-	import { getModalStore, LightSwitch, SlideToggle } from '@skeletonlabs/skeleton';
-	import { practiceMode } from '../stores';
+	// settings: game mode (daily / practice) and color mode (light / dark)
+	import { Switch } from '@skeletonlabs/skeleton-svelte';
+	import IconSettings from '@tabler/icons-svelte-runes/icons/settings';
+	import IconSun from '@tabler/icons-svelte-runes/icons/sun';
+	import IconMoon from '@tabler/icons-svelte-runes/icons/moon';
+	import Modal from './Modal.svelte';
+	import { game } from '#lib/game.svelte.ts';
+	import { isLightMode, setLightMode } from '#lib/theme.ts';
 
-	const modalStore = getModalStore();
+	let lightMode = $state(false);
 
-	// function togglePracticeMode() {
-	// 	practiceMode.update((value) => !value);
-	// }
-
-	//$: console.log('practiceMode: ', $practiceMode);
+	// read the current mode whenever the settings open
+	$effect(() => {
+		if (game.dialog === 'settings') lightMode = isLightMode();
+	});
 </script>
 
-<!-- Settings Modal Content -->
-<div class="modal-container p-6 rounded-xl shadow-lg bg-surface-100 dark:bg-surface-800">
-	<div class="font-bold text-2xl">⚙️ Settings</div>
+<Modal name="settings" title="Settings">
+	{#snippet icon()}
+		<IconSettings class="size-6 text-primary-500" />
+	{/snippet}
 
-	<!-- Game Mode Modifier -->
-	<div class="flex flex-col gap-2 text-lg space-y-4 p-4">
-		<strong>Game Mode</strong>
-		<!-- Wrap in a div to move it to the next line -->
-		<div>
-			<SlideToggle
-				class="transition duration-200"
-				name="slide"
-				bind:checked={$practiceMode}
-				label={$practiceMode ? 'Practice' : 'Daily Challenge'}
-				active="bg-primary-500"
-				size="sm"
+	<div class="space-y-6 py-2">
+		<!-- Game Mode Modifier -->
+		<div class="space-y-2">
+			<h3 class="font-semibold">Game Mode</h3>
+			<Switch
+				checked={game.practiceMode}
+				onCheckedChange={(details) => game.setMode(details.checked)}
+				data-testid="game-mode-switch"
 			>
-				{$practiceMode ? 'Practice' : 'Daily Challenge'}
-			</SlideToggle>
+				<Switch.Control class="data-[state=checked]:preset-filled-primary-500">
+					<Switch.Thumb />
+				</Switch.Control>
+				<Switch.Label>{game.practiceMode ? 'Practice' : 'Daily Challenge'}</Switch.Label>
+				<Switch.HiddenInput />
+			</Switch>
 		</div>
-		<strong>Color Mode</strong>
+
 		<!-- Dark/Light Mode Toggle -->
-		<div>
-			<LightSwitch
-				class="transition duration-200"
-				bgLight="bg-[#FBE7D1]"
-				bgDark="bg-[#73420D]"
-				rounded="rounded-full"
-			/>
+		<div class="space-y-2">
+			<h3 class="font-semibold">Color Mode</h3>
+			<Switch
+				checked={lightMode}
+				onCheckedChange={(details) => {
+					lightMode = details.checked;
+					setLightMode(details.checked);
+				}}
+				data-testid="color-mode-switch"
+			>
+				<Switch.Control class="data-[state=checked]:preset-filled-primary-500">
+					<Switch.Thumb>
+						{#if lightMode}
+							<IconSun class="size-3" />
+						{:else}
+							<IconMoon class="size-3" />
+						{/if}
+					</Switch.Thumb>
+				</Switch.Control>
+				<Switch.Label>{lightMode ? 'Light' : 'Dark'}</Switch.Label>
+				<Switch.HiddenInput />
+			</Switch>
 		</div>
 	</div>
-
-	<!-- Button Section -->
-	<div class="modal-footer">
-		<button class="btn variant-ghost-surface" on:click={() => modalStore.close()}>Close</button>
-	</div>
-</div>
-
-<style>
-	@import url('https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap');
-
-	.modal-container {
-		max-width: 600px;
-		margin: auto;
-		position: relative;
-	}
-
-	.modal-footer {
-		display: flex;
-		justify-content: flex-end;
-		padding-top: 1rem;
-	}
-</style>
+</Modal>

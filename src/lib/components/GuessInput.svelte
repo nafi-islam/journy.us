@@ -1,179 +1,132 @@
 <script lang="ts">
-	import { Autocomplete, popup, type ToastSettings } from '@skeletonlabs/skeleton';
-	import type { PopupSettings } from '@skeletonlabs/skeleton';
-	import { getToastStore } from '@skeletonlabs/skeleton';
+	// the guess input (autocomplete) and the main button: guess / practice / play again
 	import {
-		guessCount,
-		guessedStates,
-		initialGuessesRemaining,
-		startState,
-		targetState,
-		showPlayAgain,
-		practiceMode,
-		showPractice,
-		puzzleGraph
-	} from '../stores';
-	import { checkGuess } from '$lib/engine/game';
-	import { isWin } from '$lib/engine/rules';
-	import { getTodayKey } from '$lib/engine/daily';
-	import { saveDailyProgress as saveProgress } from '$lib/engine/storage';
-	import { gameStatus, resetGame } from '../utils';
-	import { derived, get } from 'svelte/store';
+		Combobox,
+		Portal,
+		useListCollection,
+		type ComboboxRootProps
+	} from '@skeletonlabs/skeleton-svelte';
+	import { game } from '#lib/game.svelte.ts';
+	import { toaster } from '#lib/toaster.ts';
+	import type { GuessCheck } from '#lib/engine/game.ts';
 
-	// $: hasPlayedToday = $showPractice && !$practiceMode;
+	let guessText = $state('');
+	let guessButton: HTMLButtonElement | null = $state(null);
 
-	const hasPlayedToday = derived(
-		[showPractice, practiceMode],
-		([$showPractice, $practiceMode]) => $showPractice && !$practiceMode
+	// Filtered list: remove startState, targetState, and guessedStates, then match the input
+	const options = $derived(
+		Object.keys(game.graph)
+			.filter(
+				(state) =>
+					state !== game.start && state !== game.target && !game.guessedStates.includes(state)
+			)
+			.sort()
+	);
+	const matches = $derived(
+		options.filter((state) => state.toLowerCase().includes(guessText.trim().toLowerCase()))
+	);
+	const collection = $derived(
+		useListCollection({
+			items: matches,
+			itemToString: (item) => item,
+			itemToValue: (item) => item
+		})
 	);
 
-	function enterPracticeMode() {
-		practiceMode.set(true);
-		// console.log('practice mode:', $practiceMode);
-		resetGame(); // optional: regenerate new prompt
-		// console.group('Practice Mode Logs'); // instagram reels taught me this, poggers
-		// console.log('user completed challenge and clicked practice');
-		// console.log('practice mode:', $practiceMode); // should be true
-		// console.groupEnd();
-	}
+	// button label (v1: "Guess (1 / 6)", then "Practice" after the daily, "Play Again" after practice)
+	const buttonLabel = $derived.by(() => {
+		if (game.showPlayAgain && game.practiceMode) return 'Play Again';
+		if (game.hasPlayedToday) return 'Practice';
+		const max = game.status.maxGuesses;
+		return `Guess (${Math.min(game.guessedStates.length + 1, max)} / ${max})`;
+	});
 
-	const toastStore = getToastStore();
-
-	let guessButton: HTMLButtonElement | null = null;
-
-	let popupSettings: PopupSettings = {
-		event: 'focus-click',
-		target: 'popupAutocomplete',
-		placement: 'top'
-	};
-
-	let inputPopupError: string = '';
-
-	function onPopupErrorSelect(event: any): void {
-		inputPopupError = event.detail.label;
-
-		setTimeout(() => {
-			if (guessButton) guessButton.focus();
-		}, 100);
-	}
-
+	// Function to show a toast for an invalid state name
 	function errorToastToggle() {
-		const toast: ToastSettings = {
-			message: '🚨 invalid state name!',
-			background: 'variant-filled-error',
-			timeout: 3000
-		};
-		toastStore.trigger(toast);
-		// console.log('toast clicked');
-		// console.log('toast message', toast.message);
+		toaster.error({ title: '🚨 invalid state name!', duration: 3000 });
 	}
 
-	function saveDailyProgress() {
-		if (get(practiceMode)) return;
+	// Function to react to a guess (clear the input, or explain why it wasn't accepted)
+	function handleCheck(check: GuessCheck | null) {
+		if (!check) return; // the button started practice / play again
 
-		saveProgress(getTodayKey(), {
-			guessedStates: get(guessedStates),
-			guessCount: get(guessCount),
-			won: isWin($gameStatus.status)
-		});
-	}
-
-	// Submit Guess with Validation & Toast Notification
-	// the engine decides if a guess is allowed. a finished game never takes more guesses, which
-	// also covers the enter key (v1 bug 1: enter could add guesses after the game was over)
-	function submitGuess() {
-		const check = checkGuess(inputPopupError, {
-			start: $startState,
-			target: $targetState,
-			guessed: $guessedStates,
-			status: $gameStatus.status,
-			graph: $puzzleGraph
-		});
-
-		if (!check.ok) {
-			// Show a toast notification if invalid
-			if (check.reason === 'invalid') errorToastToggle();
-
-			// duplicates (and the start / target) are ignored and cleared, like v1 did for duplicates
-			if (check.reason === 'duplicate' || check.reason === 'start-or-target') {
-				inputPopupError = '';
-			}
+		if (check.ok) {
+			guessText = ''; // Clear input after guessing
 			return;
 		}
 
-		guessedStates.update((guesses) => [...guesses, check.state]);
-		saveDailyProgress();
-		inputPopupError = ''; // Clear input after guessing
+		// Show a toast notification if invalid
+		if (check.reason === 'invalid') errorToastToggle();
+
+		// duplicates (and the start / target) are ignored and cleared, like v1 did for duplicates
+		if (check.reason === 'duplicate' || check.reason === 'start-or-target') guessText = '';
 	}
 
-	// Filtered list: remove startState, targetState, and guessedStates
-	$: filteredStates = Object.keys($puzzleGraph)
-		.filter(
-			(state) => state !== $startState && state !== $targetState && !$guessedStates.includes(state)
-		)
-		.map((state) => ({
-			label: state,
-			value: state
-		}));
-	// console.log('Autocomplete States:', states);
+	// the enter key only ever guesses: once the game is over it does nothing (v1 bug 1)
+	function onSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		handleCheck(game.submitGuess(guessText));
+	}
+
+	// the button guesses, starts practice after the daily, or plays again after practice
+	async function onButtonClick() {
+		handleCheck(await game.mainAction(guessText));
+	}
+
+	// picking a state from the list fills the input and moves focus to the guess button (v1)
+	const onValueChange: ComboboxRootProps['onValueChange'] = (details) => {
+		const picked = details.value[0];
+		if (!picked) return;
+		guessText = picked;
+		setTimeout(() => guessButton?.focus(), 50);
+	};
 </script>
 
-<div
-	class="flex flex-col space-y-4 w-full max-w-md px-4 sm:px-6 md:px-8 mx-auto mt-4 sm:mt-6 md:mt-8"
->
-	<!-- Guess Input and Button -->
-	<div class="flex w-full space-x-2">
-		<!-- Guess Input Field -->
-		<!-- Added focus: ring-primary-500 focus:border-primary-500 -->
-		<input
-			class="input autocomplete w-full p-3 border rounded-md shadow-md focus:ring-primary-500 focus:border-primary-500"
-			type="search"
-			name="autocomplete-search"
-			bind:value={inputPopupError}
-			placeholder="Enter a state..."
-			use:popup={popupSettings}
-			on:keydown={(e) => e.key === 'Enter' && submitGuess()}
-		/>
-
-		<!-- Guess Button -->
-		<button
-			bind:this={guessButton}
-			class="btn bg-primary-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-primary-800"
-			on:click={() => {
-				if ($showPlayAgain && $practiceMode) {
-					showPlayAgain.set(false);
-					resetGame();
-				} else if (!$practiceMode && get(hasPlayedToday)) {
-					enterPracticeMode();
-				} else {
-					submitGuess();
-				}
-			}}
-			tabindex="0"
-		>
-			<!-- Using $hasPlayedToday vs get(hasPlayedToday) creates a breaking bug -->
-			{#if $showPlayAgain}
-				Play Again
-			{:else if !$practiceMode && get(hasPlayedToday)}
-				Practice
-			{:else if $hasPlayedToday}
-				Practice
-			{:else}
-				Guess ({Math.min($guessCount + 1, $initialGuessesRemaining)} / {$initialGuessesRemaining})
-			{/if}
-		</button>
-	</div>
-
-	<!-- Autocomplete Dropdown -->
-	<div
-		data-popup="popupAutocomplete"
-		class="card w-full max-w-sm max-h-48 p-4 overflow-y-auto absolute left-0 top-full z-50 rounded-md bg-surface-50 border border-surface-200 shadow-lg"
-		tabindex="-1"
+<form class="flex w-full max-w-md gap-2" onsubmit={onSubmit}>
+	<!-- Guess Input Field -->
+	<Combobox
+		class="flex-1"
+		{collection}
+		inputValue={guessText}
+		onInputValueChange={(details) => (guessText = details.inputValue)}
+		{onValueChange}
+		value={[]}
+		allowCustomValue
+		inputBehavior="none"
+		selectionBehavior="replace"
+		openOnClick
+		positioning={{ placement: 'top-start', sameWidth: true }}
 	>
-		<Autocomplete
-			bind:input={inputPopupError}
-			options={filteredStates}
-			on:selection={onPopupErrorSelect}
-		/>
-	</div>
-</div>
+		<Combobox.Control>
+			<Combobox.Input
+				placeholder="Enter a state..."
+				aria-label="state guess"
+				autocomplete="off"
+				class="input"
+			/>
+		</Combobox.Control>
+		<Portal>
+			<Combobox.Positioner class="z-30">
+				<Combobox.Content class="max-h-56 overflow-y-auto card bg-surface-50-950 shadow-xl">
+					{#each matches as state (state)}
+						<Combobox.Item item={state}>
+							<Combobox.ItemText>{state}</Combobox.ItemText>
+						</Combobox.Item>
+					{/each}
+				</Combobox.Content>
+			</Combobox.Positioner>
+		</Portal>
+	</Combobox>
+
+	<!-- Guess Button -->
+	<button
+		bind:this={guessButton}
+		type="button"
+		onclick={onButtonClick}
+		data-testid="main-button"
+		class="btn min-w-32 preset-filled-primary-500 font-semibold shadow-md"
+		disabled={game.isLoading}
+	>
+		{buttonLabel}
+	</button>
+</form>

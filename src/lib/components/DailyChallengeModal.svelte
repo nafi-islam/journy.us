@@ -1,82 +1,52 @@
 <script lang="ts">
-	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
-	import {
-		showPractice,
-		dailyShortestPath,
-		dailyStartState,
-		dailyTargetState,
-		practiceMode,
-		showPlayAgain,
-		dailyGuessedStates
-	} from '../stores';
-	import { loadDailyProgress, loadStats } from '$lib/engine/storage';
-	import { onMount } from 'svelte';
-	import { ChartBar } from 'tabler-icons-svelte';
-	import { resetGame } from '$lib/utils';
-	import { findAllShortestPaths } from '$lib/engine/search';
-	import { getGuessScore } from '$lib/engine/rules';
-	import { getChallengeNumber } from '$lib/engine/dates';
-	import { getDailyGraph, getTodayKey } from '$lib/engine/daily';
-	import { computeStats, type AggregateStats, type DailyResult } from '$lib/engine/stats';
-	import { Copy } from 'tabler-icons-svelte';
-	import { get } from 'svelte/store';
-
-	const modalStore = getModalStore();
+	// daily challenge stats: today's result, all-time stats, guess distribution, share
+	import IconChartBar from '@tabler/icons-svelte-runes/icons/chart-bar';
+	import IconCopy from '@tabler/icons-svelte-runes/icons/copy';
+	import Modal from './Modal.svelte';
+	import { game } from '#lib/game.svelte.ts';
+	import { findAllShortestPaths } from '#lib/engine/search.ts';
+	import { getGuessScore } from '#lib/engine/rules.ts';
+	import { getChallengeNumber } from '#lib/engine/dates.ts';
+	import { getDailyGraph, getTodayKey } from '#lib/engine/daily.ts';
+	import { computeStats } from '#lib/engine/stats.ts';
+	import { loadDailyProgress, loadStats } from '#lib/engine/storage.ts';
 
 	// challenge #1 was 2025-04-07 (see engine/dates.ts)
-	const challengeNumber = getChallengeNumber(getTodayKey());
+	const today = $derived(game.daily?.dateKey ?? getTodayKey());
+	const challengeNumber = $derived(getChallengeNumber(today));
 
-	function enterPracticeMode() {
-		practiceMode.set(true);
-		//console.log('practice mode:', $practiceMode);
-		showPractice.set(false);
-		showPlayAgain.set(false);
-		resetGame();
-		modalStore.close();
-	}
-
-	function DailyChallengeModalToggle() {
-		modalStore.close();
-		showPractice.set(true);
-		//console.log('daily challenge modal triggered');
-	}
-
-	let statsForToday: DailyResult | null = null;
-	let aggregateStats: AggregateStats = computeStats({}, getTodayKey());
-
-	onMount(() => {
-		const today = getTodayKey();
-		const stats = loadStats();
-
-		// Show only if played today
-		statsForToday = stats[today] ?? null;
-
-		// Compute all-time stats (streaks need consecutive days, see engine/stats.ts)
-		aggregateStats = computeStats(stats, today);
+	// re-read localStorage whenever the dialog opens or a result is saved
+	const history = $derived.by(() => {
+		void game.dialog;
+		void game.resultsVersion;
+		return loadStats();
 	});
+	const statsForToday = $derived(history[today] ?? null);
+	const aggregateStats = $derived(computeStats(history, today));
+	const maxCount = $derived(Math.max(1, ...aggregateStats.guessDistribution));
 
-	// const toastStore = getToastStore();
+	const statTiles = $derived([
+		{ label: 'Played', value: `${aggregateStats.gamesPlayed}` },
+		{ label: 'Win Rate', value: `${aggregateStats.winRate}%` },
+		{ label: 'Current Streak', value: `${aggregateStats.currentStreak}` },
+		{ label: 'Max Streak', value: `${aggregateStats.maxStreak}` }
+	]);
 
-	let copying = false;
+	let copying = $state(false);
 
+	// Function to copy the share message (v1 format) with the saved daily guesses
 	function copyShareMessage() {
-		if (copying) return;
+		if (copying || !statsForToday) return;
 		copying = true;
 
-		const challenge = challengeNumber;
-		const guessesUsed = statsForToday?.guessCount ?? 0;
-		//console.log('guessesUsed', guessesUsed);
-		const totalGuesses = (statsForToday?.shortestPathLength ?? 3) + 3;
-		//console.log('totalGuesses', totalGuesses);
+		const guessesUsed = statsForToday.guessCount;
+		const totalGuesses = statsForToday.shortestPathLength + 3;
 
-		// share the saved daily guesses, not the board on screen (v1 bug 10: after moving on to
-		// practice, the practice guesses were shared)
-		const guessesToShare = loadDailyProgress(getTodayKey())?.guessedStates ?? [];
-		const start = get(dailyStartState);
-		const target = get(dailyTargetState);
-
-		// legacy dailies (before SWITCH_DATE) are played on the v1 graph
-		const dailyGraph = getDailyGraph(getTodayKey());
+		// share the saved daily guesses, not the board on screen (v1 bug 10)
+		const guessesToShare = loadDailyProgress(today)?.guessedStates ?? [];
+		const dailyGraph = getDailyGraph(today);
+		const start = game.daily?.start ?? '';
+		const target = game.daily?.target ?? '';
 		const allPaths = findAllShortestPaths(start, target, dailyGraph);
 
 		const icons = guessesToShare
@@ -88,152 +58,108 @@
 			})
 			.join('');
 
-		const message = `journy #${challenge} ${guessesUsed}/${totalGuesses}\n${icons}\nhttps://www.journy.us/`;
+		const message = `journy #${challengeNumber} ${guessesUsed}/${totalGuesses}\n${icons}\nhttps://www.journy.us/`;
 
 		navigator.clipboard.writeText(message).then(() => {
-			// toastStore.trigger({
-			// 	message: '📋 copied to clipboard!',
-			// 	background: 'variant-filled-primary',
-			// 	timeout: 3000
-			// });
 			setTimeout(() => {
 				copying = false;
 			}, 2000); // wait 2s before re-enabling
 		});
 	}
+
+	// Function to leave the stats and start practicing
+	function enterPracticeMode() {
+		game.dialog = null;
+		game.setPracticeMode();
+	}
 </script>
 
-<div class="modal-container p-6 rounded-xl shadow-lg bg-surface-100 dark:bg-surface-800">
-	<!-- Header -->
-	<div class="flex items-center justify-center gap-2 mb-4">
-		<ChartBar size="24" />
-		<h2 class="font-bold text-2xl text-center">Challenge #{challengeNumber}</h2>
-	</div>
+<Modal name="stats" title="Challenge #{challengeNumber}">
+	{#snippet icon()}
+		<IconChartBar class="size-6 text-primary-500" />
+	{/snippet}
 
 	{#if statsForToday}
-		<h2 class="text-xl font-semibold text-center mb-4">
+		<div class="space-y-2 text-center">
+			<h3 class="h4">
+				{#if statsForToday.won}
+					🎉 Congratulations!
+				{:else}
+					❌ Better luck next time!
+				{/if}
+			</h3>
+
+			<!-- Win Message -->
 			{#if statsForToday.won}
-				🎉 Congratulations!
-			{:else}
-				❌ Better luck next time!
+				<p>
+					Success! You got from <strong>{game.daily?.start}</strong> to
+					<strong>{game.daily?.target}</strong>
+					in <strong>{statsForToday.guessCount}</strong> guesses.<br />
+					The shortest solution was <strong>{statsForToday.shortestPathLength}</strong> guesses.
+				</p>
+			{:else if game.daily}
+				<!-- Lose Message -->
+				<p>
+					The shortest solution was <strong>{statsForToday.shortestPathLength}</strong> guesses.
+					<br />
+					{game.daily.shortestPath.join(' ➡️ ')}
+				</p>
 			{/if}
-		</h2>
-
-		<!-- Win Message -->
-		{#if statsForToday.won}
-			<p class="text-center mb-4">
-				Success! You got from <strong>{$dailyStartState}</strong> to
-				<strong>{$dailyTargetState}</strong>
-				in
-				<strong>{statsForToday.guessCount}</strong> guesses.<br />
-				The shortest solution was <strong>{statsForToday.shortestPathLength}</strong> guesses.
-			</p>
-		{/if}
-
-		<!-- Lose Message -->
-		{#if $dailyShortestPath.length && !statsForToday?.won}
-			<p class="text-center mb-4">
-				The shortest solution was <strong>{statsForToday.shortestPathLength}</strong> guesses.
-				<br />
-				{$dailyShortestPath.join(' ➡️ ')}
-			</p>
-		{/if}
+		</div>
 	{/if}
 
-	<div class="modal-body">
-		<!-- Stats Overview -->
-		<div class="flex flex-wrap sm:flex-nowrap justify-between text-center mb-6 gap-4">
-			<div class="flex-1">
-				<p class="text-2xl font-bold">{aggregateStats.gamesPlayed}</p>
-				<p class="text-sm opacity-70">Played</p>
+	<!-- Stats Overview -->
+	<div class="grid grid-cols-4 gap-2 text-center">
+		{#each statTiles as tile (tile.label)}
+			<div class="rounded-base bg-surface-100-900 px-1 py-3" data-testid="stat-{tile.label}">
+				<p class="text-2xl font-bold">{tile.value}</p>
+				<p class="text-xs leading-tight opacity-70">{tile.label}</p>
 			</div>
-			<div class="flex-1">
-				<p class="text-2xl font-bold">{aggregateStats.winRate}%</p>
-				<p class="text-sm opacity-70">Win Rate</p>
-			</div>
-			<div class="flex-1">
-				<p class="text-2xl font-bold">{aggregateStats.currentStreak}</p>
-				<p class="text-sm opacity-70">Current Streak</p>
-			</div>
-			<div class="flex-1">
-				<p class="text-2xl font-bold">{aggregateStats.maxStreak}</p>
-				<p class="text-sm opacity-70">Max Streak</p>
-			</div>
-		</div>
+		{/each}
+	</div>
 
-		<!-- Guess Distribution -->
-		<div class="mb-6">
-			<h4 class="font-semibold mb-2 text-center">Guess Distribution</h4>
-			{#each aggregateStats.guessDistribution as count, index}
-				<div class="flex items-center mb-1 gap-2">
-					<span class="text-sm w-6">{index + 1}</span>
+	<!-- Guess Distribution -->
+	<div class="space-y-1">
+		<h4 class="text-center font-semibold">Guess Distribution</h4>
+		{#each aggregateStats.guessDistribution as count, index (index)}
+			{@const isToday = statsForToday?.won && statsForToday.guessCount === index + 1}
+			<div class="flex items-center gap-2 text-sm">
+				<span class="w-4 text-right opacity-70">{index + 1}</span>
+				<div class="h-5 flex-1">
 					<div
-						class="{count === 0
-							? 'bg-surface-300 dark:bg-surface-600 opacity-40'
-							: 'bg-primary-500'} h-4 rounded-md transition-all"
-						style="width: {Math.max(count * 12, 12)}px"
-					></div>
-					<span class="text-xs">{count}</span>
+						class="flex h-full min-w-6 items-center justify-end rounded-base px-1.5 text-xs font-semibold transition-all {count ===
+						0
+							? 'bg-surface-200-800 opacity-60'
+							: isToday
+								? 'preset-filled-secondary-500'
+								: 'preset-filled-primary-500'}"
+						style="width: {(count / maxCount) * 100}%"
+					>
+						{count}
+					</div>
 				</div>
-			{/each}
-		</div>
+			</div>
+		{/each}
 	</div>
 
 	<!-- Practice CTA -->
-	<div class="text-center mt-2">
-		<p>
-			Want to practice more?
-			<button
-				on:click={enterPracticeMode}
-				type="button"
-				class="underline hover:text-primary-500 dark:hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-300 rounded"
-			>
-				Click here!
-			</button>
-		</p>
-	</div>
+	<p class="text-center">
+		Want to practice more?
+		<button type="button" class="anchor underline" onclick={enterPracticeMode}>Click here!</button>
+	</p>
 
+	<!-- Share Button -->
 	{#if statsForToday && (statsForToday.won || statsForToday.guessCount > 0)}
-		<!-- Share Button -->
-		<div class="flex justify-center mt-4">
+		<div class="flex justify-center">
 			<button
-				on:click={copyShareMessage}
-				class="btn bg-primary-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-primary-800 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+				type="button"
+				class="btn preset-filled-primary-500 shadow-md"
+				onclick={copyShareMessage}
 				disabled={copying}
 			>
-				<Copy size="16" />
+				<IconCopy class="size-4" />
 				<span>{copying ? 'Copied!' : 'Share'}</span>
 			</button>
 		</div>
 	{/if}
-
-	<!-- Footer -->
-	<div class="modal-footer">
-		<button class="btn variant-ghost-surface" on:click={DailyChallengeModalToggle}>Close</button>
-	</div>
-</div>
-
-<style>
-	.modal-container {
-		max-width: 600px;
-		max-height: 80vh; /* max size */
-		overflow-y: auto; /* scrolling */
-		display: flex;
-		flex-direction: column;
-		margin: auto;
-		position: relative;
-	}
-
-	.modal-body {
-		flex-grow: 1; /* content expandable */
-		max-height: 65vh; /* max overflow */
-		overflow-y: auto;
-		padding: 10px;
-	}
-
-	.modal-footer {
-		display: flex;
-		justify-content: flex-end;
-		padding-top: 1rem;
-	}
-</style>
+</Modal>

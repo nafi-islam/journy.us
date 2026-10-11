@@ -1,38 +1,40 @@
 <script lang="ts">
-	import { findAllShortestPaths } from '$lib/engine/search';
-	import { getGuessScore } from '$lib/engine/rules';
-	import { guessedStates, startState, targetState, puzzleGraph } from '../stores';
+	// past guesses with the guess guide (🟩 on a shortest path, 🟧 next to one, 🟥 out of the way)
+	import { findAllShortestPaths } from '#lib/engine/search.ts';
+	import { getGuessScore, type GuessScore } from '#lib/engine/rules.ts';
+	import { game } from '#lib/game.svelte.ts';
 
-	let labeledGuesses = [];
+	const iconMap: Record<GuessScore, string> = {
+		green: '🟩',
+		orange: '🟧',
+		red: '🟥'
+	};
 
-	$: allShortestPaths = findAllShortestPaths($startState, $targetState, $puzzleGraph);
+	const allShortestPaths = $derived(findAllShortestPaths(game.start, game.target, game.graph));
 
-	$: labeledGuesses = $guessedStates.map((guess) => {
-		const score = getGuessScore(guess, allShortestPaths, $puzzleGraph);
-		const iconMap = {
-			green: '🟩',
-			orange: '🟧',
-			red: '🟥'
-		};
-
-		return {
+	const labeledGuesses = $derived(
+		game.guessedStates.map((guess) => ({
 			guess,
-			icon: iconMap[score]
-		};
-	});
+			icon: iconMap[getGuessScore(guess, allShortestPaths, game.graph)]
+		}))
+	);
 </script>
 
-{#if $guessedStates.length > 0}
-	<div class="flex flex-col items-center text-center w-full max-w-md">
-		<h4 class="h4 mb-2">past guesses:</h4>
+{#if game.guessedStates.length > 0}
+	<section class="flex w-full max-w-md flex-col items-center gap-3">
+		<h4 class="h5 opacity-80">past guesses:</h4>
 
 		<!-- Guesses Grid -->
-		<div class="flex flex-wrap justify-center gap-2 mb-2">
-			{#each labeledGuesses as { guess, icon }}
-				<div class="w-[140px] bg-primary-500 text-white text-center p-2 rounded-md">
-					<span>{icon}</span> <span>{guess}</span>
-				</div>
+		<ul class="grid w-full grid-cols-2 gap-2 sm:grid-cols-3">
+			{#each labeledGuesses as { guess, icon } (guess)}
+				<li
+					data-testid="guess-chip"
+					class="animate-pop-in flex items-center justify-center gap-2 rounded-base border border-surface-200-800 bg-surface-100-900 px-3 py-2 text-sm font-medium shadow-sm"
+				>
+					<span aria-hidden="true">{icon}</span>
+					<span>{guess}</span>
+				</li>
 			{/each}
-		</div>
-	</div>
+		</ul>
+	</section>
 {/if}

@@ -4,7 +4,7 @@
 import { expect, test } from '@playwright/test';
 import { getGeneratedPuzzle, getTodayKey, SWITCH_DATE } from '../../src/lib/engine/daily';
 import { getChallengeNumber } from '../../src/lib/engine/dates';
-import { closeModal, guess, mainButton, setClock } from './helpers';
+import { closeModal, guess, mainButton, openDialog, setClock } from './helpers';
 
 // Function to read the "to go from x to y" prompt
 function promptText(page: import('@playwright/test').Page) {
@@ -38,7 +38,7 @@ test.describe('in utc', () => {
 		await page.goto('/');
 		for (const state of puzzle.shortestPath.slice(1, -1)) await guess(page, state);
 
-		await expect(page.getByText(`Challenge #${puzzle.challengeNumber}`)).toBeVisible();
+		await expect(openDialog(page).getByText(`Challenge #${puzzle.challengeNumber}`)).toBeVisible();
 		await page.getByRole('button', { name: 'Share' }).click();
 		const clipboard = await page.evaluate(() => navigator.clipboard.readText());
 		expect(clipboard).toBe(
