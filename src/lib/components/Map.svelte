@@ -15,14 +15,20 @@
 	}
 
 	// Function to pick a state's color (skeleton vintage palette, same as v1)
+	// note: skeleton's light / dark color pairs only exist when the two shades add up to 1000
+	// (e.g. surface-300-700). a pair like surface-300-600 silently does nothing (and the state
+	// turns black), so the unplayed gray uses an explicit dark: variant instead
 	function fillClass(name: string): string {
 		if (name === game.start) return 'fill-primary-500';
 		if (name === game.target) return 'fill-secondary-500';
 		if (game.guessedStates.includes(name)) return 'fill-tertiary-500';
-		return 'fill-surface-300-600';
+		return 'fill-surface-300 dark:fill-surface-400';
 	}
 
 	const visibleStates = $derived(mapStates.filter((state) => isVisible(state.name)));
+
+	// the daily reveals states with a small pop (practice shows the whole map at once)
+	const popClass = $derived(game.practiceMode ? '' : 'animate-pop-in');
 </script>
 
 <!-- Render the map -->
@@ -44,20 +50,35 @@
 			role="img"
 			aria-label="map of the united states"
 		>
-			{#each visibleStates as state (state.name)}
-				<path
-					d={state.path}
-					class="{fillClass(
-						state.name
-					)} stroke-surface-50 transition-[fill] duration-300 hover:stroke-surface-950 dark:stroke-surface-950 dark:hover:stroke-surface-50 {game.practiceMode
-						? ''
-						: 'animate-pop-in'}"
-					style="transform-origin: {state.centroid[0]}px {state.centroid[1]}px"
-					stroke-width="1.2"
-				>
-					<title>{state.name}</title>
-				</path>
-			{/each}
+			<!-- fills first, then every border on top: drawing each state's border with its own
+			     fill let the next state cover half of the shared line, so outlines looked broken -->
+			<g data-testid="map-fills">
+				{#each visibleStates as state (state.name)}
+					<path
+						d={state.path}
+						class="{fillClass(
+							state.name
+						)} {popClass} transition-[fill,opacity] duration-300 hover:opacity-85"
+						style="transform-origin: {state.centroid[0]}px {state.centroid[1]}px"
+					>
+						<title>{state.name}</title>
+					</path>
+				{/each}
+			</g>
+			<g
+				data-testid="map-borders"
+				class="pointer-events-none fill-none stroke-surface-50 dark:stroke-surface-950"
+				stroke-width="1.2"
+				stroke-linejoin="round"
+			>
+				{#each visibleStates as state (state.name)}
+					<path
+						d={state.path}
+						class={popClass}
+						style="transform-origin: {state.centroid[0]}px {state.centroid[1]}px"
+					/>
+				{/each}
+			</g>
 		</svg>
 	{/if}
 </div>

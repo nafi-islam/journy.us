@@ -42,7 +42,7 @@ export function mainButton(page: Page) {
 
 // Function to get the drawn map states
 export function mapStates(page: Page) {
-	return page.locator('[data-testid="map"] path');
+	return page.locator('[data-testid="map-fills"] path');
 }
 
 // Function to get the open dialog (closed dialogs stay in the page, hidden)
