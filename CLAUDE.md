@@ -339,6 +339,13 @@ these follow the history of the repo. please keep them.
   `// Function to find all shortest paths using BFS`; short lowercase inline comments;
   `<!-- Section -->` markers in svelte markup.
 - formatting: prettier (tabs, single quotes, 100 cols — see `.prettierrc`). run `npm run format`.
+- colors: use skeleton's theme colors (`primary`, `secondary`, `tertiary`, `surface`). light /
+  dark pairs like `bg-surface-100-900` only exist when the two shades **add up to 1000**; any
+  other pair (e.g. `fill-surface-300-600`) silently generates nothing. for other combinations
+  use an explicit `dark:` variant (`fill-surface-300 dark:fill-surface-400`).
+  `src/lib/components/colorPairs.test.ts` fails the build on a bad pair.
+- the map draws two layers: every state's fill first, then every border on top (so shared
+  borders are never half covered). keep that order when changing `Map.svelte`.
 
 ### debugging
 
