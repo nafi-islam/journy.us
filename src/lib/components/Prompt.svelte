@@ -8,11 +8,16 @@
 		<h3 class="animate-pulse h4">finding your journy...</h3>
 	{:else}
 		<h2 class="h2">your journy {game.practiceMode ? 'now' : 'today'} is...</h2>
+		<!-- each state gets a dot in its map color (orange start, green target) -->
 		<h3 class="text-lg">
 			to go from
-			<span class="chip preset-filled-primary-500 text-base font-semibold">{game.start}</span>
+			<span class="inline-flex items-center gap-1.5 font-semibold text-primary-700-300">
+				<span class="size-2.5 rounded-full bg-primary-500" aria-hidden="true"></span>{game.start}
+			</span>
 			to
-			<span class="chip preset-filled-secondary-500 text-base font-semibold">{game.target}</span>
+			<span class="inline-flex items-center gap-1.5 font-semibold text-secondary-800-200">
+				<span class="size-2.5 rounded-full bg-secondary-500" aria-hidden="true"></span>{game.target}
+			</span>
 		</h3>
 	{/if}
 </div>

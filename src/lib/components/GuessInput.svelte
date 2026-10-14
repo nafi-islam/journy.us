@@ -124,7 +124,7 @@
 		type="button"
 		onclick={onButtonClick}
 		data-testid="main-button"
-		class="btn min-w-32 preset-filled-primary-500 font-semibold shadow-md"
+		class="btn min-w-28 border border-primary-500 text-primary-700-300 transition-colors hover:preset-filled-primary-500 disabled:opacity-50"
 		disabled={game.isLoading}
 	>
 		{buttonLabel}
