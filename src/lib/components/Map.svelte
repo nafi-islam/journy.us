@@ -15,14 +15,13 @@
 	}
 
 	// Function to pick a state's color (skeleton vintage palette, same as v1)
-	// note: skeleton's light / dark color pairs only exist when the two shades add up to 1000
-	// (e.g. surface-300-700). a pair like surface-300-600 silently does nothing (and the state
-	// turns black), so the unplayed gray uses an explicit dark: variant instead
+	// the unplayed gray is surface-300 in both modes (like v1): it keeps at least 3:1 contrast with
+	// the background and the borders in light and dark, so the map stays readable on a dim screen
 	function fillClass(name: string): string {
 		if (name === game.start) return 'fill-primary-500';
 		if (name === game.target) return 'fill-secondary-500';
 		if (game.guessedStates.includes(name)) return 'fill-tertiary-500';
-		return 'fill-surface-300 dark:fill-surface-400';
+		return 'fill-surface-300';
 	}
 
 	const visibleStates = $derived(mapStates.filter((state) => isVisible(state.name)));
@@ -33,7 +32,8 @@
 
 <!-- Render the map -->
 <div
-	class="relative flex aspect-[8/5] w-full max-w-xl items-center justify-center overflow-hidden rounded-container border border-surface-200-800/60 bg-surface-100-900/40 shadow-inner"
+	data-testid="map-frame"
+	class="relative flex aspect-[8/5] w-full max-w-xl items-center justify-center overflow-hidden rounded-container border border-surface-300 bg-surface-100-900/40 shadow-inner dark:border-surface-400"
 >
 	{#if game.isLoading}
 		<!-- loading spinner -->
@@ -60,9 +60,7 @@
 							state.name
 						)} {popClass} transition-[fill,opacity] duration-300 hover:opacity-85"
 						style="transform-origin: {state.centroid[0]}px {state.centroid[1]}px"
-					>
-						<title>{state.name}</title>
-					</path>
+					></path>
 				{/each}
 			</g>
 			<g
