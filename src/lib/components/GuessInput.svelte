@@ -73,26 +73,6 @@
 		handleCheck(await game.mainAction(guessText));
 	}
 
-	// the suggestion highlighted with the arrow keys (null when none)
-	let highlighted: string | null = $state(null);
-
-	// Function to complete the typed text with the tab key
-	// v1's skeleton 2 autocomplete let tab walk through the suggestions (they were buttons).
-	// skeleton 5's combobox follows the aria pattern (arrow keys only), so tab now fills in the
-	// highlighted suggestion, or the first match. a complete name or an empty box tabs as usual
-	function onInputKeydown(event: KeyboardEvent) {
-		if (event.key !== 'Tab' || event.shiftKey) return;
-
-		const typed = guessText.trim().toLowerCase();
-		if (typed === '') return;
-
-		const completion = highlighted && matches.includes(highlighted) ? highlighted : matches[0];
-		if (!completion || completion.toLowerCase() === typed) return;
-
-		event.preventDefault();
-		guessText = completion;
-	}
-
 	// picking a state from the list fills the input and moves focus to the guess button (v1)
 	const onValueChange: ComboboxRootProps['onValueChange'] = (details) => {
 		const picked = details.value[0];
@@ -110,7 +90,6 @@
 		inputValue={guessText}
 		onInputValueChange={(details) => (guessText = details.inputValue)}
 		{onValueChange}
-		onHighlightChange={(details) => (highlighted = details.highlightedValue)}
 		value={[]}
 		allowCustomValue
 		inputBehavior="none"
@@ -124,7 +103,6 @@
 				aria-label="state guess"
 				autocomplete="off"
 				class="input"
-				onkeydown={onInputKeydown}
 			/>
 		</Combobox.Control>
 		<Portal>
