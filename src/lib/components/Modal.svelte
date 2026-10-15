@@ -32,7 +32,7 @@
 		/>
 		<Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-4">
 			<Dialog.Content
-				class="max-h-[85vh] w-full max-w-lg space-y-4 overflow-y-auto card border border-surface-200-800 bg-surface-50-950 p-6 shadow-2xl {animation}"
+				class="max-h-[85vh] w-full max-w-lg space-y-4 overflow-y-auto card border border-surface-200-800 bg-surface-50-950 p-4 shadow-2xl sm:p-6 {animation}"
 			>
 				<!-- Header -->
 				<header class="flex items-center justify-between gap-2">

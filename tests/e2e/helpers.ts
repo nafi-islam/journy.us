@@ -63,9 +63,14 @@ export async function openHeaderModal(page: Page, which: 'stats' | 'settings' | 
 }
 
 // Function to close whatever modal is open and wait for its fade-out to finish
+// (the backdrop disappears first; the dialog itself keeps fading out for a moment, and a click
+// during that fade can land on the old dialog, so wait for both)
 export async function closeModal(page: Page) {
+	// a result dialog opens ~500ms after the last guess, so first wait for a dialog to be open
+	await expect(openDialog(page)).toHaveCount(1);
 	await page.keyboard.press('Escape');
 	await expect(openBackdrop(page)).toHaveCount(0);
+	await expect(openDialog(page)).toHaveCount(0);
 }
 
 // Function to read one of the stat tiles in the stats modal (played, win rate, streaks)

@@ -109,10 +109,14 @@
 	{/if}
 
 	<!-- Stats Overview -->
-	<div class="grid grid-cols-4 gap-2 text-center">
+	<!-- smaller numbers on narrow phones so "100%" fits its tile -->
+	<div class="grid grid-cols-4 gap-1.5 text-center sm:gap-2">
 		{#each statTiles as tile (tile.label)}
-			<div class="rounded-base bg-surface-100-900 px-1 py-3" data-testid="stat-{tile.label}">
-				<p class="text-2xl font-bold">{tile.value}</p>
+			<div
+				class="min-w-0 rounded-base bg-surface-100-900 px-1 py-3"
+				data-testid="stat-{tile.label}"
+			>
+				<p class="text-lg font-bold tabular-nums min-[360px]:text-xl sm:text-2xl">{tile.value}</p>
 				<p class="text-xs leading-tight opacity-70">{tile.label}</p>
 			</div>
 		{/each}
