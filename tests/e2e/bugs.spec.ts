@@ -91,6 +91,7 @@ test('bug 3: skipping a day breaks the current streak', async ({ page }) => {
 test('bug 10: sharing after practice still shares the daily result', async ({ page }) => {
 	await openDaily(page);
 	for (const state of OPTIMAL_GUESSES) await guess(page, state);
+	await expect(openDialog(page).getByText('Challenge #553')).toBeVisible();
 	await closeModal(page);
 	await mainButton(page).click();
 	await expect(page.getByText('your journy now is...')).toBeVisible();
@@ -100,4 +101,24 @@ test('bug 10: sharing after practice still shares the daily result', async ({ pa
 	await page.getByRole('button', { name: 'Share' }).click();
 	const clipboard = await page.evaluate(() => navigator.clipboard.readText());
 	expect(clipboard).toBe('journy #553 3/6\n🟩🟩🟩\nhttps://www.journy.us/');
+});
+
+// bug 11 (found and fixed in m3 feedback): the result dialog opens ~500ms after the last guess and
+// used to pick daily vs practice when the timer fired. tapping practice right after finishing
+// the daily popped up a practice result for a game not played yet (and the button said play again)
+test('bug 11: starting practice right after the daily never shows a practice result', async ({
+	page
+}) => {
+	await openDaily(page);
+	for (const state of OPTIMAL_GUESSES) await guess(page, state);
+	await mainButton(page).click(); // practice, before the daily result opens
+
+	await expect(page.getByText('your journy now is...')).toBeVisible();
+	await page.waitForTimeout(1_000); // longer than the result delay
+	await expect(openDialog(page)).toHaveCount(0);
+	await expect(mainButton(page)).toHaveText(/^Guess \(1 \/ \d\)$/);
+
+	// the daily result was never shown, so it shows once after a reload
+	await page.reload();
+	await expect(openDialog(page).getByText('Challenge #553')).toBeVisible();
 });

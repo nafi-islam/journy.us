@@ -63,6 +63,17 @@ class JournyGame {
 	private resultShownDaily = false;
 	private resultShownPractice = false;
 
+	// the result dialog opens shortly after the last guess. if a new puzzle starts first (e.g. the
+	// player taps practice right away) the pending result is cancelled, so a practice result never
+	// pops up for a practice game that hasn't been played
+	private resultTimer: ReturnType<typeof setTimeout> | null = null;
+
+	// Function to cancel a result dialog that hasn't opened yet
+	private cancelPendingResult() {
+		if (this.resultTimer) clearTimeout(this.resultTimer);
+		this.resultTimer = null;
+	}
+
 	// Function to start the game when the page loads
 	async init() {
 		ensureStorageVersion(); // marks journyStorageVersion, never rewrites v1 data
@@ -102,6 +113,7 @@ class JournyGame {
 
 	// Function to show today's daily with any saved progress
 	async loadDailyChallengeAndProgress() {
+		this.cancelPendingResult();
 		await this.setDailyChallenge();
 		if (!this.daily) return;
 
@@ -131,6 +143,7 @@ class JournyGame {
 
 	// Generate new practice mode states (always a new puzzle, never the daily: v1 bug 2)
 	setPracticeMode() {
+		this.cancelPendingResult();
 		const { start, target } = getRandomStatePair();
 
 		this.practiceMode = true;
@@ -218,13 +231,19 @@ class JournyGame {
 			this.showPractice = true; // the button becomes practice (even if the modal is closed)
 			if (this.resultShownDaily) return;
 			this.resultShownDaily = true;
-			markDailyResultSeen(this.daily!.dateKey); // don't replay the modal after a reload
 		}
 
 		if (isWin(this.status.status)) celebrate();
 
-		setTimeout(() => {
-			this.dialog = this.practiceMode ? 'practice-result' : 'stats';
+		// decide which result to show now, not when the timer fires
+		const resultDialog: DialogName = this.practiceMode ? 'practice-result' : 'stats';
+		const dailyDate = this.daily?.dateKey;
+		this.cancelPendingResult();
+		this.resultTimer = setTimeout(() => {
+			this.resultTimer = null;
+			this.dialog = resultDialog;
+			// only a result that was really shown counts as seen (no replay after a reload)
+			if (resultDialog === 'stats' && dailyDate) markDailyResultSeen(dailyDate);
 		}, RESULT_DELAY);
 	}
 
