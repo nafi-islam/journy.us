@@ -120,7 +120,7 @@ src/
     components/
       Prompt.svelte         "your journy today is... to go from x to y"
       Map.svelte            the map (daily: only start / target / guesses; practice: all)
-      GuessInput.svelte     autocomplete (Combobox, tab completes) + guess / practice / play again
+      GuessInput.svelte     autocomplete (Combobox) + guess / practice / play again button
       Guesses.svelte        guess chips with 🟩🟧🟥
       Modal.svelte          shared dialog frame (skeleton Dialog)
       Modals.svelte         all modals, loaded lazily after the first paint
@@ -348,9 +348,10 @@ these follow the history of the repo. please keep them.
   `// Function to find all shortest paths using BFS`; short lowercase inline comments;
   `<!-- Section -->` markers in svelte markup.
 - formatting: prettier (tabs, single quotes, 100 cols — see `.prettierrc`). run `npm run format`.
-- keyboard: skeleton 5's combobox follows the aria combobox pattern (arrow keys move through
-  suggestions, they are not tabbable). v1's skeleton 2 autocomplete rendered buttons, so tab
-  walked through them; journy now makes tab complete the input instead (`GuessInput.svelte`).
+- use skeleton components as they are; don't customize their built-in behavior (avoid bloat).
+  e.g. the guess input keeps skeleton 5's combobox keyboard pattern: arrow keys move through the
+  suggestions, enter picks one, tab leaves the field. (v1's skeleton 2 autocomplete rendered the
+  suggestions as buttons, so tab walked through them; that changed in skeleton, on purpose.)
 - colors: use skeleton's theme colors (`primary`, `secondary`, `tertiary`, `surface`). light /
   dark pairs like `bg-surface-100-900` only exist when the two shades **add up to 1000**; any
   other pair (e.g. `fill-surface-300-600`) silently generates nothing. for other combinations
