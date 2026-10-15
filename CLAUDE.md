@@ -54,6 +54,10 @@ still the first thing to try if hot reload misbehaves.
     `map`, `dialog-backdrop`, `stat-*`, `game-mode-switch`, `color-mode-switch`). skeleton 5
     keeps closed dialogs in the page (hidden), so assert inside `openDialog(page)`.
   - `daily.spec.ts` pins the exact v1 localStorage shapes. don't loosen it.
+  - `layout.spec.ts` opens every screen on 320px and 375px phones and fails if any text is cut
+    off or the page scrolls sideways. add new screens / dialogs to it.
+  - `closeModal(page)` waits for a dialog to be open, then for it to finish fading out. a
+    result dialog opens ~500ms after the last guess, so never press escape blindly.
 - **known bugs** are written as the correct behavior and marked as expected failures
   (`it.fails` in vitest, `test.fail` in playwright). when you fix one, remove the marker so it
   becomes a normal test. to see why the e2e ones fail today:
@@ -116,7 +120,7 @@ src/
     components/
       Prompt.svelte         "your journy today is... to go from x to y"
       Map.svelte            the map (daily: only start / target / guesses; practice: all)
-      GuessInput.svelte     autocomplete (Combobox) + guess / practice / play again button
+      GuessInput.svelte     autocomplete (Combobox, tab completes) + guess / practice / play again
       Guesses.svelte        guess chips with 🟩🟧🟥
       Modal.svelte          shared dialog frame (skeleton Dialog)
       Modals.svelte         all modals, loaded lazily after the first paint
@@ -290,7 +294,7 @@ state).
 | regions = u.s. census bureau regions                       | official, covers all 48 states exactly once                                                                                                      |
 | twist = its own daily                                      | experts get a challenge without changing the main daily                                                                                          |
 
-### v1 bugs (all fixed in m1)
+### bugs (v1 bugs fixed in m1, plus ones found during v2)
 
 numbers match `tests/e2e/bugs.spec.ts` (4–8 were v1 design choices or data issues, not ui bugs).
 each one is now a regression test.
@@ -303,6 +307,9 @@ each one is now a regression test.
 - **bug 9**: after a mid-game reload the guess button said "practice", because any saved
   progress for today counted as "played today".
 - **bug 10**: sharing from the stats modal after playing practice shared the practice guesses.
+- **bug 11** (found in v2 testing): tapping practice within ~500ms of finishing the daily
+  popped up a practice result for a game not played yet. the pending result is now cancelled
+  when a new puzzle starts, and only a result that was really shown counts as seen.
 - nitpicks: NaN win rate for new players, the result modal replaying on reload.
 
 ### future notes
@@ -339,6 +346,9 @@ these follow the history of the repo. please keep them.
   `// Function to find all shortest paths using BFS`; short lowercase inline comments;
   `<!-- Section -->` markers in svelte markup.
 - formatting: prettier (tabs, single quotes, 100 cols — see `.prettierrc`). run `npm run format`.
+- keyboard: skeleton 5's combobox follows the aria combobox pattern (arrow keys move through
+  suggestions, they are not tabbable). v1's skeleton 2 autocomplete rendered buttons, so tab
+  walked through them; journy now makes tab complete the input instead (`GuessInput.svelte`).
 - colors: use skeleton's theme colors (`primary`, `secondary`, `tertiary`, `surface`). light /
   dark pairs like `bg-surface-100-900` only exist when the two shades **add up to 1000**; any
   other pair (e.g. `fill-surface-300-600`) silently generates nothing. for other combinations
