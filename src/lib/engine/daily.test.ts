@@ -25,13 +25,20 @@ function pairKey(start: string, target: string): string {
 }
 
 describe('SWITCH_DATE', () => {
-	it('defaults to the day after the v1 json runs out, so the daily never stops', () => {
+	it('is the v2 cutover day, 2026-11-01', () => {
+		expect(SWITCH_DATE).toBe('2026-11-01');
+	});
+
+	it('has a v1 json puzzle for every day before the switch (no gap, never later than the json)', () => {
 		const lastLegacyDate = Object.keys(challenges).sort().pop()!;
-		expect(addDays(lastLegacyDate, 1)).toBe(SWITCH_DATE);
+		expect(SWITCH_DATE <= addDays(lastLegacyDate, 1)).toBe(true);
+		for (let date = '2025-04-07'; date < SWITCH_DATE; date = addDays(date, 1)) {
+			expect(getLegacyPuzzle(date, challenges as LegacyChallenges), date).not.toBeNull();
+		}
 	});
 
 	it('splits legacy and generated dates', () => {
-		expect(isLegacyDate('2030-04-05')).toBe(true);
+		expect(isLegacyDate('2026-10-31')).toBe(true);
 		expect(isLegacyDate(SWITCH_DATE)).toBe(false);
 		expect(getDailyGraph('2026-10-17')).toBe(legacyStatesGraph);
 		expect(getDailyGraph(SWITCH_DATE)).toBe(statesGraph);
@@ -139,13 +146,23 @@ describe('getGeneratedPuzzle', () => {
 	});
 
 	it('keeps a difficulty mix close to v1 (about 42 / 32 / 26%)', () => {
+		// one full cycle uses every pair once, so the mix is exactly the pool's mix
+		// (cycle 4 starts at day index 4 * 465 after 2025-04-07)
 		const mix = { 3: 0, 4: 0, 5: 0 } as Record<number, number>;
-		let dateKey = SWITCH_DATE;
+		let dateKey = addDays('2025-04-07', 4 * 465);
 		for (let i = 0; i < 465; i++) {
 			mix[getGeneratedPuzzle(dateKey).shortestPath.length - 2]++;
 			dateKey = addDays(dateKey, 1);
 		}
-		expect(mix).toEqual({ 3: 194, 4: 151, 5: 120 });
+		// the cycle's mix is exactly the pool's mix
+		const poolMix = { 3: 0, 4: 0, 5: 0 } as Record<number, number>;
+		for (const [a, b] of getDailyPool()) poolMix[findShortestPath(a, b, statesGraph)!.length - 2]++;
+		expect(mix).toEqual(poolMix);
+
+		// about 42 / 32 / 26% like v1's json (768 / 599 / 458 of 1,825)
+		expect(Math.round((mix[3] / 465) * 100)).toBe(42);
+		expect(Math.round((mix[4] / 465) * 100)).toBe(32);
+		expect(Math.round((mix[5] / 465) * 100)).toBe(26);
 	});
 });
 
@@ -163,6 +180,6 @@ describe('getLegacyPuzzle', () => {
 	});
 
 	it('returns null for a date that is not in the json', () => {
-		expect(getLegacyPuzzle(SWITCH_DATE, challenges as LegacyChallenges)).toBeNull();
+		expect(getLegacyPuzzle('2030-04-06', challenges as LegacyChallenges)).toBeNull();
 	});
 });

@@ -14,11 +14,10 @@ import {
 	utcDateKey
 } from './dates';
 
-// the first day that is generated instead of read from the v1 json.
-// set this to the cutover day at release. default: the day after the json runs out
-// (2030-04-05), so the game keeps working even if it is never changed.
+// the first day that is generated instead of read from the v1 json (the v2 cutover).
+// the json covers every day up to 2030-04-05, so this can never be later than 2030-04-06.
 // changing it never changes which puzzle a date gets, only where the puzzle comes from
-export const SWITCH_DATE = '2030-04-06';
+export const SWITCH_DATE = '2026-11-01';
 
 // daily puzzles have 3 to 5 states in between (same as v1)
 export const MIN_STATES_BETWEEN = 3;
