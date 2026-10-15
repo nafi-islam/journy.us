@@ -195,8 +195,10 @@ challenge #1 is **2025-04-07**. every daily has 3–5 states in between.
   v1 graph.
 - **from `SWITCH_DATE`** (generated): the puzzle is computed from the date in the browser,
   keyed by the player's **local** date. no download, never runs out.
-- `SWITCH_DATE` defaults to `2030-04-06` (the day after the json ends) and is moved to the
-  cutover day at release. moving it never changes which puzzle a date gets.
+- `SWITCH_DATE` is **`2026-11-01`** (challenge #574, the v2 cutover). it can never be later than
+  `2030-04-06` (the day after the json ends; a test checks there is no gap). moving it never
+  changes which puzzle a date gets. once it has passed, delete `static/validChallenges.json`,
+  `generateValidChallenges/` and the legacy branch of `engine/daily.ts` / `engine/legacy.ts`.
 - `getTodayKey()` = local date once it reaches the switch, otherwise utc. on switch night
   (behind utc) players get the switch-day puzzle from utc midnight until their local midnight,
   so no puzzle ever changes mid-day.
