@@ -4,9 +4,12 @@
 	import IconHeart from '@tabler/icons-svelte-runes/icons/heart';
 </script>
 
-<footer class="flex items-center justify-center gap-3 py-6 text-sm opacity-80">
+<!-- each group stays on one line; on narrow phones whole groups wrap instead of words -->
+<footer
+	class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-6 text-sm opacity-80"
+>
 	<!-- Built with Svelte Icon -->
-	<span class="flex items-center gap-1">
+	<span class="flex items-center gap-1 whitespace-nowrap">
 		powered by
 		<a
 			href="https://svelte.dev"
@@ -19,7 +22,7 @@
 		</a>
 	</span>
 	<span aria-hidden="true">|</span>
-	<span class="flex items-center gap-1">
+	<span class="flex items-center gap-1 whitespace-nowrap">
 		made by
 		<a
 			href="https://nafiislam.com"

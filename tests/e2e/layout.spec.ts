@@ -60,7 +60,17 @@ for (const width of [320, 375]) {
 			await guess(page, 'Wyoming');
 			await guess(page, 'Texas');
 			await expectNoSidewaysScroll(page);
-			expect(await findOverflow(page.locator('main'))).toEqual([]);
+			expect(await findOverflow(page.locator('body'))).toEqual([]);
+
+			// the footer groups ("powered by", "made by nafi with") never break across lines
+			for (const group of await page.locator('footer > span').all()) {
+				const lines = await group.evaluate((el) =>
+					Math.round(
+						el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)
+					)
+				);
+				expect(lines, await group.innerText()).toBe(1);
+			}
 		});
 
 		test('the stats dialog fits after a 100% win', async ({ page }) => {
