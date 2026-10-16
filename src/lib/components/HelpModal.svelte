@@ -5,17 +5,22 @@
 	import IconChevronDown from '@tabler/icons-svelte-runes/icons/chevron-down';
 	import Modal from './Modal.svelte';
 
+	// semantic versions: major = big releases / breaking changes, minor = new features,
+	// patch = fixes. keep in sync with "version" in package.json (shown in the header)
 	const patchNotes = [
 		{
-			date: 'v2',
+			version: 'v2.0.0',
+			date: 'october 16th, 2026',
 			description:
 				'a fresh coat of paint, endless daily challenges, local-midnight dailies, faster loading, and bug fixes (streaks, sharing after practice and more)'
 		},
 		{
+			version: 'v1.1.0',
 			date: 'april 7th, 2025',
 			description: 'added a daily challenge mode, user stats, guess guide, and share feature'
 		},
 		{
+			version: 'v1.0.0',
 			date: 'march 3rd, 2025',
 			description: 'initial public release of journy 🎉'
 		}
@@ -106,8 +111,8 @@
 									</p>
 								{:else}
 									<ul class="list-disc space-y-1 pl-5">
-										{#each patchNotes as note (note.date)}
-											<li><strong>{note.date}</strong> – {note.description}</li>
+										{#each patchNotes as note (note.version)}
+											<li><strong>{note.version}</strong> · {note.date} – {note.description}</li>
 										{/each}
 									</ul>
 								{/if}

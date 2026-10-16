@@ -9,6 +9,7 @@
 	import Footer from '#lib/components/Footer.svelte';
 	import { game, type DialogName } from '#lib/game.svelte.ts';
 	import { toaster } from '#lib/toaster.ts';
+	import { version } from '../../package.json';
 
 	let { children }: { children: Snippet } = $props();
 
@@ -78,9 +79,9 @@
 			</div>
 
 			<div class="flex items-center gap-1">
-				<!-- Beta Chip -->
+				<!-- Version Chip (semantic version from package.json) -->
 				<span class="mr-1 chip rounded-full border border-current px-2 py-0.5 font-hand text-sm">
-					beta
+					v{version}
 				</span>
 
 				<!-- Stats / Settings / Help Buttons -->

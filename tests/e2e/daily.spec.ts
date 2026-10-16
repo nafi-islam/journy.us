@@ -2,6 +2,7 @@
 // so the v2 refactor can be checked against them
 
 import { expect, test } from '@playwright/test';
+import pkg from '../../package.json' with { type: 'json' };
 import {
 	OPTIMAL_GUESSES,
 	TEST_DATE_KEY,
@@ -20,6 +21,7 @@ test('shows the daily puzzle with a budget of optimal + 3', async ({ page }) => 
 	await openDaily(page);
 	await expect(page.getByText('your journy today is...')).toBeVisible();
 	await expect(mainButton(page)).toHaveText('Guess (1 / 6)');
+	await expect(page.getByText(`v${pkg.version}`, { exact: true })).toBeVisible(); // header version chip
 });
 
 test('an optimal win shows the result and writes the v1 localStorage contract', async ({
