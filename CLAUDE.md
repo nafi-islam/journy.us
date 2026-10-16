@@ -339,6 +339,17 @@ these follow the history of the repo. please keep them.
 - larger work happens on a branch and merges through a pull request with a summary body
   (features added, developer breakdown, main files worked in) like PR #1.
 
+### versioning
+
+- journy uses **semantic versioning** (`major.minor.patch`). `version` in `package.json` is the
+  single source of truth; the header chip shows it (`v2.0.0`).
+- **major**: a big release or a change players must adapt to (v2 = the refactor). **minor**: a
+  new feature (e.g. hints, practice regions). **patch**: bug fixes only.
+- on release: bump `package.json` (and `npm install --package-lock-only` or edit the root
+  `version` in the lock), add a line to `patchNotes` in `HelpModal.svelte`, and tag the merge
+  commit (`git tag v2.1.0`). history: v1.0.0 (2025-03-03), v1.1.0 daily challenge (2025-04-07),
+  v2.0.0 refactor (2026-10-16).
+
 ### code
 
 - keep it simple and readable for someone new to the game and to svelte. prefer small pure
