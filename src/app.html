@@ -1,13 +1,44 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en" class="dark" data-theme="vintage">
 	<head>
 		<meta charset="utf-8" />
-		<title>journy.us</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" href="%sveltekit.assets%/map-icon.png" />
-		<meta name="viewport" content="width=device-width" />
+		<link rel="apple-touch-icon" href="%sveltekit.assets%/apple-touch-icon.png" />
+
+		<!-- apply the saved light / dark mode before the page paints (see src/lib/theme.ts) -->
+		<script>
+			(function () {
+				try {
+					var saved = JSON.parse(localStorage.getItem('modeUserPrefers'));
+					var light =
+						typeof saved === 'boolean'
+							? saved
+							: window.matchMedia('(prefers-color-scheme: light)').matches;
+					document.documentElement.classList.toggle('dark', !light);
+				} catch (e) {}
+			})();
+		</script>
+
+		<!-- vercel web analytics + speed insights (the scripts only exist on vercel deployments) -->
+		<script>
+			window.va =
+				window.va ||
+				function () {
+					(window.vaq = window.vaq || []).push(arguments);
+				};
+			window.si =
+				window.si ||
+				function () {
+					(window.siq = window.siq || []).push(arguments);
+				};
+		</script>
+		<script defer src="/_vercel/insights/script.js"></script>
+		<script defer src="/_vercel/speed-insights/script.js"></script>
+
 		%sveltekit.head%
 	</head>
-	<body data-sveltekit-preload-data="hover" data-theme="vintage">
-		<div style="display: contents" class="h-full overflow-hidden">%sveltekit.body%</div>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
 	</body>
 </html>

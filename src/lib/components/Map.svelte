@@ -1,175 +1,82 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { ProgressRadial } from '@skeletonlabs/skeleton';
-	import { geoAlbersUsa, geoPath } from 'd3-geo';
-	import { json } from 'd3-fetch';
-	import { feature } from 'topojson-client';
-	import type { FeatureCollection, Feature, Geometry } from 'geojson';
-	import {
-		startState,
-		targetState,
-		guessedStates,
-		mapLoaded,
-		isLoading,
-		practiceMode
-	} from '../stores';
-	import { checkLoadingComplete } from '$lib/utils';
+	// the us map. the daily only draws the start, target and guessed states (fog of war);
+	// practice draws every state so players can learn the map
+	import { MAP_HEIGHT, MAP_WIDTH, mapStates } from '#lib/map/mapData.ts';
+	import { game } from '#lib/game.svelte.ts';
 
-	const geoUrl = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json';
+	// Function to decide if a state is drawn
+	function isVisible(name: string): boolean {
+		return (
+			game.practiceMode ||
+			name === game.start ||
+			name === game.target ||
+			game.guessedStates.includes(name)
+		);
+	}
 
-	type StateFeature = Feature<Geometry, { name: string }>;
-	type StateCollection = FeatureCollection<Geometry, { name: string }>;
+	// Function to pick a state's color (skeleton vintage palette, same as v1)
+	// the unplayed gray is surface-300 in both modes (like v1): it keeps at least 3:1 contrast with
+	// the background and the borders in light and dark, so the map stays readable on a dim screen
+	function fillClass(name: string): string {
+		if (name === game.start) return 'fill-primary-500';
+		if (name === game.target) return 'fill-secondary-500';
+		if (game.guessedStates.includes(name)) return 'fill-tertiary-500';
+		return 'fill-surface-300';
+	}
 
-	let states: StateFeature[] = [];
-	// let guessedStates: string[] = [];
+	const visibleStates = $derived(mapStates.filter((state) => isVisible(state.name)));
 
-	// let forceLoading = true;
-
-	// Store Subscription
-	let start: string;
-	let target: string;
-
-	let guessed: string[] = [];
-	// guessedStates.subscribe((value) => (guessed = value));
-
-	$: guessed = $guessedStates;
-
-	startState.subscribe((value) => (start = value));
-	targetState.subscribe((value) => (target = value));
-
-	// Define projection & path
-	const projection = geoAlbersUsa().scale(1250).translate([480, 300]);
-	const pathGenerator = geoPath(projection);
-
-	// Fetch the map data when component mounts
-	onMount(async () => {
-		try {
-			const data = (await json(geoUrl)) as any;
-			const stateCollection = feature(data, data.objects.states) as unknown as StateCollection;
-			states = stateCollection.features;
-		} catch (error) {
-			console.error('Error loading map data:', error);
-		} finally {
-			// Mark the map as loaded
-			mapLoaded.set(true);
-			checkLoadingComplete(); // Check if prompt is also ready
-		}
-	});
-
-	// Set state colors, use Skeleton Vintage Color Palette
-	$: getFillColor = (stateName: string): string => {
-		const style = getComputedStyle(document.documentElement);
-
-		if (stateName === start)
-			return `rgb(${style.getPropertyValue('--color-primary-500').trim() || '234, 134, 26'})`;
-		if (stateName === target)
-			return `rgb(${style.getPropertyValue('--color-secondary-500').trim() || '151, 206, 165'})`;
-		if (guessed.includes(stateName))
-			return `rgb(${style.getPropertyValue('--color-tertiary-500').trim() || '6, 182, 212'})`;
-		return `rgb(${style.getPropertyValue('--color-surface-300').trim() || '129, 124, 119'})`;
-	};
-
-	// $: console.log('Updated guessed states:', $guessedStates);
-	// $: console.log('Guessed states updated in store:', $guessedStates);
+	// the daily reveals states with a small pop (practice shows the whole map at once)
+	const popClass = $derived(game.practiceMode ? '' : 'animate-pop-in');
 </script>
 
 <!-- Render the map -->
-<div class="map-container">
-	<div class="map-glow"></div>
-	{#if $isLoading}
-		<div class="map-loader">
-			<ProgressRadial value={undefined} class="text-primary-500" meter="stroke-primary-500" />
-		</div>
+<div
+	data-testid="map-frame"
+	class="relative flex aspect-[8/5] w-full max-w-xl items-center justify-center overflow-hidden rounded-container border border-surface-300 bg-surface-100-900/40 shadow-inner dark:border-surface-400"
+>
+	{#if game.isLoading}
+		<!-- loading spinner -->
+		<div
+			class="size-12 animate-spin rounded-full border-4 border-surface-300-700 border-t-primary-500 motion-reduce:animate-none"
+			role="status"
+			aria-label="loading the map"
+		></div>
 	{:else}
-		<svg width="550" height="350" viewBox="0 0 960 600">
-			<g>
-				{#each states as state}
-					{#if $practiceMode || state.properties.name === $startState || state.properties.name === $targetState || guessed.includes(state.properties.name)}
-						<path
-							d={pathGenerator(state)}
-							fill={getFillColor(state.properties.name)}
-							stroke="#FFF"
-							class="transition duration-200 ease-in-out hover:stroke-2 hover:stroke-black"
-						/>
-					{/if}
+		<svg
+			data-testid="map"
+			class="h-full w-full p-2"
+			viewBox="0 0 {MAP_WIDTH} {MAP_HEIGHT}"
+			role="img"
+			aria-label="map of the united states"
+		>
+			<!-- fills first, then every border on top: drawing each state's border with its own
+			     fill let the next state cover half of the shared line, so outlines looked broken -->
+			<g data-testid="map-fills">
+				{#each visibleStates as state (state.name)}
+					<path
+						d={state.path}
+						class="{fillClass(
+							state.name
+						)} {popClass} transition-[fill,opacity] duration-300 hover:opacity-85"
+						style="transform-origin: {state.centroid[0]}px {state.centroid[1]}px"
+					></path>
+				{/each}
+			</g>
+			<g
+				data-testid="map-borders"
+				class="pointer-events-none fill-none stroke-surface-50 dark:stroke-surface-950"
+				stroke-width="1.2"
+				stroke-linejoin="round"
+			>
+				{#each visibleStates as state (state.name)}
+					<path
+						d={state.path}
+						class={popClass}
+						style="transform-origin: {state.centroid[0]}px {state.centroid[1]}px"
+					/>
 				{/each}
 			</g>
 		</svg>
 	{/if}
 </div>
-
-<style lang="postcss">
-	.map-container {
-		width: 100%;
-		max-width: 550px; /* Keep desktop size */
-		height: auto;
-		aspect-ratio: 16 / 10; /* Maintains aspect ratio */
-	}
-
-	svg {
-		width: 100%;
-		height: auto;
-	}
-
-	.map-loader {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		width: 100%;
-		height: 100%;
-	}
-
-	.map-glow {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		width: 300px; /* Adjust size */
-		height: 300px;
-		border-radius: 50%;
-		filter: blur(50px);
-		z-index: -1;
-		opacity: 0.6;
-		animation:
-			pulse 5s cubic-bezier(0, 0, 0, 0.5) infinite,
-			glow 5s linear infinite;
-	}
-
-	/* Glow color transitions */
-	@keyframes glow {
-		0% {
-			background-color: rgba(234, 134, 26, 0.5); /* Primary */
-		}
-		33% {
-			background-color: rgba(151, 206, 165, 0.5); /* Secondary */
-		}
-		66% {
-			background-color: rgba(6, 182, 212, 0.5); /* Tertiary */
-		}
-		100% {
-			background-color: rgba(234, 134, 26, 0.5);
-		}
-	}
-
-	/* Pulse effect */
-	@keyframes pulse {
-		50% {
-			transform: translate(-50%, -50%) scale(1.5);
-		}
-	}
-
-	@media (max-width: 600px) {
-		.map-container {
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			min-height: 250px; /* Ensures enough space for loader */
-		}
-
-		.map-loader {
-			position: static; /* Prevents absolute positioning */
-			width: 100%;
-			height: 100%;
-		}
-	}
-</style>

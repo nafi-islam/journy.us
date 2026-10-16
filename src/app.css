@@ -1,0 +1,75 @@
+@import 'tailwindcss';
+
+@import '@skeletonlabs/skeleton';
+@import '@skeletonlabs/skeleton-svelte';
+@import '@skeletonlabs/skeleton/themes/vintage';
+
+@import '@fontsource/gloria-hallelujah/latin-400.css';
+@import '@fontsource/abril-fatface/latin-400.css';
+
+/* dark mode follows the .dark class on <html> (set before paint in app.html, toggled in settings) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+	--font-hand: 'Gloria Hallelujah', cursive;
+	--font-display: 'Abril Fatface', serif;
+}
+
+/* journy's look = skeleton's vintage preset (same orange / green / cyan palette as v1)
+   with abril fatface headings, like v1's vintage theme. this sits outside any layer so it
+   wins over the theme file */
+[data-theme='vintage'] {
+	--typo-heading--font-family: var(--font-display);
+	--typo-heading--font-weight: normal;
+	--typo-heading--letter-spacing: 0.01em;
+}
+
+@layer base {
+	html,
+	body {
+		@apply min-h-full;
+	}
+
+	body {
+		/* warm paper-like backdrop with a soft glow, light and dark */
+		background-image:
+			radial-gradient(
+				60rem 30rem at 50% -10rem,
+				--alpha(var(--color-primary-500) / 12%),
+				transparent
+			),
+			radial-gradient(
+				40rem 30rem at 100% 100%,
+				--alpha(var(--color-tertiary-500) / 8%),
+				transparent
+			);
+		background-attachment: fixed;
+	}
+}
+
+@layer utilities {
+	/* soft "pop" when a state or chip appears */
+	@keyframes pop-in {
+		0% {
+			opacity: 0;
+			transform: scale(0.85);
+		}
+		70% {
+			transform: scale(1.04);
+		}
+		100% {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+
+	.animate-pop-in {
+		animation: pop-in 260ms ease-out both;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.animate-pop-in {
+			animation: none;
+		}
+	}
+}

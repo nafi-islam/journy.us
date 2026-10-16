@@ -1,112 +1,56 @@
 <script lang="ts">
-	import '../app.postcss';
-	import { onMount } from 'svelte';
-	import {
-		AppShell,
-		AppBar,
-		Modal,
-		modeOsPrefers,
-		modeCurrent,
-		modeUserPrefers
-	} from '@skeletonlabs/skeleton';
-	import { getModalStore, initializeStores, LightSwitch } from '@skeletonlabs/skeleton';
-	import type { ModalSettings } from '@skeletonlabs/skeleton';
-	import { storePopup } from '@skeletonlabs/skeleton';
-	import { Toast } from '@skeletonlabs/skeleton';
-	import { autoModeWatcher } from '@skeletonlabs/skeleton';
-	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
-	import { ChartBar, Map2, Settings } from 'tabler-icons-svelte';
-	import { QuestionMark } from 'tabler-icons-svelte';
-	import Footer from '$lib/components/Footer.svelte';
-	import HelpModal from '$lib/components/HelpModal.svelte';
-	import SettingsModal from '$lib/components/SettingsModal.svelte';
-	import { dev } from '$app/environment';
-	import { injectAnalytics } from '@vercel/analytics/sveltekit';
-	import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
-	import DailyChallengeModal from '$lib/components/DailyChallengeModal.svelte';
+	import '../app.css';
+	import { onMount, type Component, type Snippet } from 'svelte';
+	import { Toast } from '@skeletonlabs/skeleton-svelte';
+	import IconChartBar from '@tabler/icons-svelte-runes/icons/chart-bar';
+	import IconSettings from '@tabler/icons-svelte-runes/icons/settings';
+	import IconQuestionMark from '@tabler/icons-svelte-runes/icons/question-mark';
+	import IconMap2 from '@tabler/icons-svelte-runes/icons/map-2';
+	import Footer from '#lib/components/Footer.svelte';
+	import { game, type DialogName } from '#lib/game.svelte.ts';
+	import { toaster } from '#lib/toaster.ts';
+	import { version } from '../../package.json';
 
-	injectAnalytics({ mode: dev ? 'development' : 'production' });
+	let { children }: { children: Snippet } = $props();
 
-	injectSpeedInsights();
+	// the modals are loaded lazily: right after the first paint, or as soon as one is opened
+	let Modals: Component | null = $state(null);
 
-	// read docs on getting user os preference for theme, too lazy right now
+	// Function to load the modals (once)
+	async function loadModals() {
+		if (!Modals) Modals = (await import('#lib/components/Modals.svelte')).default;
+	}
 
 	onMount(() => {
-		autoModeWatcher();
-
-		modeOsPrefers.subscribe((value) => {
-			// console.log('modeOsPrefers', value);
-		});
-
-		modeUserPrefers.subscribe((value) => {
-			// console.log('modeUserPrefers', value);
-		});
-
-		modeCurrent.subscribe((value) => {
-			// console.log('modeCurrent', value);
-		});
+		const idle =
+			window.requestIdleCallback ?? ((callback: () => void) => setTimeout(callback, 200));
+		idle(() => loadModals());
 	});
 
-	initializeStores();
+	$effect(() => {
+		if (game.dialog) loadModals();
+	});
 
-	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
-
-	const modalStore = getModalStore();
-	// const toastStore = getToastStore();
-
-	function helpModalToggle() {
-		const modal: ModalSettings = {
-			type: 'component',
-			component: {
-				ref: HelpModal
-			}
-		};
-		modalStore.trigger(modal);
-	}
-
-	function settingModalToggle() {
-		const modal: ModalSettings = {
-			type: 'component',
-			component: {
-				ref: SettingsModal
-			}
-		};
-		modalStore.trigger(modal);
-	}
-
-	function dailyChallengeModalToggle() {
-		const modal: ModalSettings = {
-			type: 'component',
-			component: {
-				ref: DailyChallengeModal
-			}
-		};
-		modalStore.trigger(modal);
-	}
+	const headerButtons: { dialog: DialogName; label: string; icon: typeof IconChartBar }[] = [
+		{ dialog: 'stats', label: 'statistics', icon: IconChartBar },
+		{ dialog: 'settings', label: 'settings', icon: IconSettings },
+		{ dialog: 'help', label: 'how to play', icon: IconQuestionMark }
+	];
 </script>
-
-<link
-	rel="preload"
-	href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap"
-	as="style"
-/>
-<link
-	rel="stylesheet"
-	href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap"
-/>
-
-<!-- <svelte:head>{@html '<script>(' + autoModeWatcher.toString() + ')();</script>'}</svelte:head> -->
 
 <svelte:head>
 	<title>journy.us</title>
-	<link rel="icon" href="/map-icon.png" />
-	<!-- <link rel="icon" type="image/png" href="/map-emoji?v=2.png" />
-	<link rel="icon" type="image/x-icon" href="/map-emoji?v=2.png" /> -->
-	<!-- <link rel="apple-touch-icon" href="/apple-touch-icon.png" /> -->
+	<meta
+		name="description"
+		content="a daily us geography game: connect two states in as few guesses as possible"
+	/>
 
 	<!-- Open Graph Meta Tags (for Facebook, LinkedIn) -->
 	<meta property="og:title" content="journy.us" />
-	<meta property="og:description" content="journy.us" />
+	<meta
+		property="og:description"
+		content="a daily us geography game: connect two states in as few guesses as possible"
+	/>
 	<meta property="og:url" content="https://www.journy.us/" />
 	<meta property="og:image" content="https://www.journy.us/map-icon.png" />
 	<meta property="og:type" content="website" />
@@ -114,83 +58,70 @@
 	<!-- Twitter Card Meta Tags -->
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content="journy.us" />
-	<meta name="twitter:description" content="journy.us" />
+	<meta
+		name="twitter:description"
+		content="a daily us geography game: connect two states in as few guesses as possible"
+	/>
 	<meta name="twitter:image" content="https://www.journy.us/map-icon.png" />
-
-	<!-- Viewport -->
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
 </svelte:head>
 
-<Modal />
+<div class="flex min-h-screen flex-col">
+	<!-- App Bar -->
+	<header
+		id="app-header"
+		class="sticky top-0 z-40 border-b border-surface-200-800/60 bg-surface-50-950/80 backdrop-blur"
+	>
+		<div class="mx-auto flex max-w-2xl items-center justify-between px-4 py-2">
+			<!-- Map Icon & Title -->
+			<div class="flex items-center gap-2">
+				<IconMap2 class="size-6 text-primary-500" />
+				<strong class="font-hand text-2xl">journy</strong>
+			</div>
 
-<Toast position="t" />
+			<div class="flex items-center gap-1">
+				<!-- Version Chip (semantic version from package.json) -->
+				<span class="mr-1 chip rounded-full border border-current px-2 py-0.5 font-hand text-sm">
+					v{version}
+				</span>
 
-<!-- App Shell -->
-<AppShell>
-	<svelte:fragment slot="header">
-		<!-- App Bar -->
-		<AppBar>
-			<svelte:fragment slot="lead">
-				<!-- Map Icon & Title -->
-				<div class="flex items-center space-x-2">
-					<Map2 />
-					<strong class="journy-title">journy</strong>
-				</div>
-			</svelte:fragment>
-
-			<svelte:fragment slot="trail">
-				<!-- Beta Chip -->
-				<span class="chip chip-text border border-current px-2 py-1 rounded-full bg-transparent"
-					>beta</span
-				>
-
-				<!-- Daily Challenge Button -->
-				<button
-					class="btn-icon btn-sm variant-ghost-surface flex items-center justify-center w-10 h-10 p-2 bg-transparent"
-					on:click={dailyChallengeModalToggle}
-				>
-					<ChartBar class="w-4 h-4" />
-				</button>
-
-				<!-- Settings Button -->
-				<button
-					class="btn-icon btn-sm variant-ghost-surface flex items-center justify-center w-10 h-10 p-2 bg-transparent"
-					on:click={settingModalToggle}
-				>
-					<Settings class="w-4 h-4" />
-				</button>
-
-				<!-- Help Button -->
-				<button
-					class="btn-icon btn-sm variant-ghost-surface flex items-center justify-center w-10 h-10 p-2 bg-transparent"
-					on:click={helpModalToggle}
-				>
-					<QuestionMark class="w-4 h-4" />
-				</button>
-			</svelte:fragment>
-		</AppBar>
-	</svelte:fragment>
+				<!-- Stats / Settings / Help Buttons -->
+				{#each headerButtons as button (button.dialog)}
+					<button
+						type="button"
+						class="btn-icon hover:preset-tonal"
+						aria-label={button.label}
+						title={button.label}
+						onclick={() => (game.dialog = button.dialog)}
+					>
+						<button.icon class="size-5" />
+					</button>
+				{/each}
+			</div>
+		</div>
+	</header>
 
 	<!-- Page Content -->
-	<slot />
+	<main class="mx-auto w-full max-w-2xl flex-1 px-4">
+		{@render children()}
+	</main>
 
 	<!-- Footer -->
 	<Footer />
-</AppShell>
+</div>
 
-<!-- Import Google Font -->
-<style>
-	@import url('https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap');
+<!-- Modals -->
+{#if Modals}
+	<Modals />
+{/if}
 
-	.journy-title {
-		font-family: 'Gloria Hallelujah', cursive;
-		font-size: 1.5rem;
-		font-weight: bold;
-	}
-
-	.chip-text {
-		font-family: 'Gloria Hallelujah', cursive;
-		font-size: 0.9rem;
-		font-weight: bold;
-	}
-</style>
+<!-- Toasts -->
+<Toast.Group {toaster}>
+	{#snippet children(toast)}
+		<Toast {toast} class="preset-filled-error-500">
+			<Toast.Message>
+				<Toast.Title>{toast.title}</Toast.Title>
+			</Toast.Message>
+			<Toast.CloseTrigger />
+		</Toast>
+	{/snippet}
+</Toast.Group>

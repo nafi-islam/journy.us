@@ -1,32 +1,39 @@
-import eslint from '@eslint/js';
 import prettier from 'eslint-config-prettier';
+import path from 'node:path';
+import js from '@eslint/js';
 import svelte from 'eslint-plugin-svelte';
+import { defineConfig, includeIgnoreFile } from 'eslint/config';
 import globals from 'globals';
-import tseslint from 'typescript-eslint';
+import ts from 'typescript-eslint';
 
-export default tseslint.config(
-	eslint.configs.recommended,
-	...tseslint.configs.recommended,
-	...svelte.configs['flat/recommended'],
+const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
+
+export default defineConfig(
+	includeIgnoreFile(gitignorePath),
+	js.configs.recommended,
+	ts.configs.recommended,
+	svelte.configs.recommended,
 	prettier,
-	...svelte.configs['flat/prettier'],
+	svelte.configs.prettier,
 	{
-		languageOptions: {
-			globals: {
-				...globals.browser,
-				...globals.node
-			}
+		languageOptions: { globals: { ...globals.browser, ...globals.node } },
+		rules: {
+			// typescript-eslint recommends turning no-undef off for typescript projects
+			'no-undef': 'off'
 		}
 	},
 	{
-		files: ['**/*.svelte'],
+		files: ['**/*.svelte', '**/*.svelte.ts'],
 		languageOptions: {
 			parserOptions: {
-				parser: tseslint.parser
+				projectService: true,
+				extraFileExtensions: ['.svelte'],
+				parser: ts.parser
 			}
 		}
 	},
 	{
-		ignores: ['build/', '.svelte-kit/', 'dist/']
+		// v1's standalone generator (deleted after SWITCH_DATE) is not part of the app
+		ignores: ['generateValidChallenges/']
 	}
 );

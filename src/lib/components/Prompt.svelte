@@ -1,172 +1,23 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import {
-		startState,
-		targetState,
-		pathLength,
-		statesLoaded,
-		isLoading,
-		practiceMode,
-		guessedStates,
-		guessCount,
-		showPlayAgain,
-		dailyPathLength,
-		dailyShortestPath,
-		dailyTargetState,
-		dailyStartState,
-		dailyGuessedStates,
-		dailyGuessCount,
-		showPractice,
-		modalShownPractice
-	} from '../stores';
-	import { checkLoadingComplete, gameStatus, getRandomStatePair } from '$lib/utils';
-	import { get } from 'svelte/store';
-
-	function resetGameState() {
-		guessedStates.set([]);
-		guessCount.set(0);
-		showPlayAgain.set(false);
-	}
-
-	// Load today's challenge from static JSON
-	async function setDailyChallenge() {
-		resetGameState();
-
-		const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-
-		try {
-			const res = await fetch('/validChallenges.json');
-			const challenges = await res.json();
-
-			const todayChallenge = challenges[today];
-
-			if (todayChallenge) {
-				startState.set(todayChallenge.dailyStartState);
-				targetState.set(todayChallenge.dailyTargetState);
-				pathLength.set(todayChallenge.dailyPathLength);
-
-				dailyStartState.set(todayChallenge.dailyStartState); // Avoid refetching JSON
-				//console.log('dailyStartState:', todayChallenge.dailyStartState);
-				dailyTargetState.set(todayChallenge.dailyTargetState);
-				dailyPathLength.set(todayChallenge.dailyPathLength);
-				dailyShortestPath.set(todayChallenge.shortestPath);
-
-				const consoleAnswer = todayChallenge.shortestPath.join(' -> ');
-				//console.log('debug, path:', consoleAnswer);
-
-				startState.set(get(dailyStartState));
-				targetState.set(get(dailyTargetState));
-			} else {
-				console.error(`No challenge found for ${today}`);
-			}
-		} catch (error) {
-			console.error('Failed to load validChallenges.json:', error);
-		}
-	}
-
-	// Generate new practice mode states when toggled
-	function setPracticeMode() {
-		resetGameState();
-
-		const { start, target, length } = getRandomStatePair();
-
-		startState.set('');
-		targetState.set('');
-		guessedStates.set([]);
-
-		startState.set(start);
-		targetState.set(target);
-		pathLength.set(length);
-
-		modalShownPractice.set(false);
-	}
-
-	async function loadDailyChallengeAndProgress() {
-		// sets practice button when switching between practice and daily mode
-		const today = new Date().toISOString().split('T')[0];
-		const stats = JSON.parse(localStorage.getItem('journyDailyStats') || '{}');
-
-		const todayProgress = stats[today];
-		showPractice.set(!!todayProgress);
-
-		await setDailyChallenge();
-		restoreDailyProgress();
-
-		// Force reset from stored values
-		startState.set(get(dailyStartState));
-		targetState.set(get(dailyTargetState));
-		guessedStates.set(get(dailyGuessedStates));
-		guessCount.set(get(dailyGuessCount));
-	}
-
-	async function restoreDailyProgress() {
-		const today = new Date().toISOString().split('T')[0];
-		const stats = JSON.parse(localStorage.getItem('journyDailyStats') || '{}');
-
-		// Clean up old progress
-		for (const date in stats) {
-			if (date !== today) delete stats[date];
-		}
-		localStorage.setItem('journyDailyStats', JSON.stringify(stats));
-
-		// Restore today’s progress
-		const todayProgress = stats[today];
-		if (todayProgress && !$practiceMode) {
-			// Store for reference (fine)
-			dailyGuessedStates.set(todayProgress.guessedStates || []);
-			dailyGuessCount.set(todayProgress.guessCount || 0);
-
-			// But these are **required** for the UI to show them
-			guessedStates.set(todayProgress.guessedStates || []);
-			guessCount.set(todayProgress.guessCount || 0);
-
-			//showPractice.set(todayProgress.won || false);
-		}
-	}
-
-	onMount(() => {
-		if ($practiceMode) {
-			setPracticeMode();
-		} else {
-			loadDailyChallengeAndProgress();
-		}
-
-		statesLoaded.set(true);
-		checkLoadingComplete();
-	});
-
-	let wasPracticeMode = false;
-
-	$: {
-		if (!wasPracticeMode && $practiceMode && $statesLoaded) {
-			if ($showPlayAgain || $guessedStates.length > 0) {
-				setPracticeMode(); // prevent the practice mode from getting wiped as they toggle back and forth
-			}
-		}
-
-		if (wasPracticeMode && !$practiceMode && $statesLoaded) {
-			// just switched back to daily challenge
-			loadDailyChallengeAndProgress(); // restore the challenge
-		}
-
-		wasPracticeMode = $practiceMode;
-	}
+	// the puzzle prompt ("your journy today is... to go from x to y")
+	import { game } from '#lib/game.svelte.ts';
 </script>
 
-<div class="flex flex-col items-center space-y-4 p-2">
-	{#if $isLoading}
-		<h3 class="h4 animate-pulse">finding your journy...</h3>
-	{:else if $practiceMode}
-		<h2 class="h2">your journy now is...</h2>
-		<h3 class="h4">
-			to go from <span class="font-semibold text-primary-600">{$startState}</span> to
-			<span class="font-semibold text-secondary-600">{$targetState}</span>
-		</h3>
+<div class="flex min-h-24 flex-col items-center justify-center gap-2">
+	{#if game.isLoading}
+		<h3 class="animate-pulse h4">finding your journy...</h3>
 	{:else}
-		<h2 class="h2">your journy today is...</h2>
-		<h3 class="h4">
-			to go from <span class="font-semibold text-primary-600">{$startState}</span> to
-			<span class="font-semibold text-secondary-600">{$targetState}</span>
+		<h2 class="h2">your journy {game.practiceMode ? 'now' : 'today'} is...</h2>
+		<!-- each state gets a dot in its map color (orange start, green target) -->
+		<h3 class="text-lg">
+			to go from
+			<span class="inline-flex items-center gap-1.5 font-semibold text-primary-700-300">
+				<span class="size-2.5 rounded-full bg-primary-500" aria-hidden="true"></span>{game.start}
+			</span>
+			to
+			<span class="inline-flex items-center gap-1.5 font-semibold text-secondary-800-200">
+				<span class="size-2.5 rounded-full bg-secondary-500" aria-hidden="true"></span>{game.target}
+			</span>
 		</h3>
 	{/if}
 </div>
