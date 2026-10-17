@@ -27,7 +27,11 @@
 			<h3 class="font-semibold">Game Mode</h3>
 			<Switch
 				checked={game.practiceMode}
-				onCheckedChange={(details) => game.setMode(details.checked)}
+				onCheckedChange={(details) => {
+					game.setMode(details.checked);
+					// close settings so the new puzzle is visible (the dialog covers the map on phones)
+					setTimeout(() => game.closeDialog(), 250);
+				}}
 				data-testid="game-mode-switch"
 			>
 				<Switch.Control class="data-[state=checked]:preset-filled-primary-500">

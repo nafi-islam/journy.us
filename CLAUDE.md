@@ -350,7 +350,7 @@ these follow the history of the repo. please keep them.
   `npm install --package-lock-only`, it once wrote an inconsistent lock that broke `npm ci`),
   add a line to `patchNotes` in `HelpModal.svelte`, and tag the merge commit (`git tag v2.1.0`).
   history: v1.0.0 (2025-03-03), v1.1.0 daily challenge (2025-04-07), v2.0.0 refactor
-  (2026-10-16).
+  (2026-10-16), v2.0.1 iphone status bar + settings fixes (2026-10-16).
 
 ### code
 

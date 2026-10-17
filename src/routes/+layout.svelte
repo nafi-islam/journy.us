@@ -69,7 +69,7 @@
 	<!-- App Bar -->
 	<header
 		id="app-header"
-		class="sticky top-0 z-40 border-b border-surface-200-800/60 bg-surface-50-950/80 backdrop-blur"
+		class="sticky top-0 z-40 border-b border-surface-200-800/60 bg-surface-50 dark:bg-surface-950"
 	>
 		<div class="mx-auto flex max-w-2xl items-center justify-between px-4 py-2">
 			<!-- Map Icon & Title -->

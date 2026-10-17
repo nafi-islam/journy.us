@@ -8,10 +8,12 @@ import {
 	guess,
 	guessChips,
 	mainButton,
+	mapStates,
 	openDaily,
+	openDialog,
+	openHeaderModal,
 	readStorage,
-	toggleGameMode,
-	mapStates
+	toggleGameMode
 } from './helpers';
 
 test('after the daily, practice starts a new puzzle with the full map', async ({ page }) => {
@@ -55,4 +57,16 @@ test('switching back from practice restores the daily and its progress', async (
 	await expect(page.getByText('your journy today is...')).toBeVisible();
 	await expect(page.getByText('to go from')).toHaveText('to go from Utah to Tennessee');
 	await expect(guessChips(page)).toHaveText(['🟩 Wyoming']);
+});
+
+test('switching game mode in settings closes settings so the new puzzle is visible', async ({
+	page
+}) => {
+	await openDaily(page);
+	await openHeaderModal(page, 'settings');
+	await page.getByTestId('game-mode-switch').click();
+
+	await expect(openDialog(page)).toHaveCount(0);
+	await expect(page.getByText('your journy now is...')).toBeVisible();
+	expect(await mapStates(page).count()).toBeGreaterThanOrEqual(48);
 });

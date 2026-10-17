@@ -14,6 +14,10 @@ export function isLightMode(): boolean {
 // Function to switch light / dark mode and remember the choice
 export function setLightMode(light: boolean) {
 	document.documentElement.classList.toggle('dark', !light);
+	// browser bar color: surface-50 / surface-950 (same as the page background in app.css)
+	document
+		.querySelector('meta[name="theme-color"]')
+		?.setAttribute('content', light ? '#e3e3e3' : '#181410');
 	try {
 		localStorage.setItem(USER_PREFERS_KEY, JSON.stringify(light));
 		localStorage.setItem(CURRENT_KEY, JSON.stringify(light));
