@@ -9,6 +9,12 @@
 	// patch = fixes. keep in sync with "version" in package.json (shown in the header)
 	const patchNotes = [
 		{
+			version: 'v2.0.1',
+			date: 'october 16th, 2026',
+			description:
+				'the bar behind the clock on iphones matches light / dark mode, and changing the game mode in settings shows the new puzzle right away'
+		},
+		{
 			version: 'v2.0.0',
 			date: 'october 16th, 2026',
 			description:
