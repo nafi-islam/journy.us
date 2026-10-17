@@ -153,3 +153,56 @@ test.describe('the map in both modes', () => {
 		expect(layers.fills).toBeGreaterThanOrEqual(48);
 	});
 });
+
+// safari on ios 26 tints the strip behind the clock from the page and sticky header background.
+// those must be plain colors for journy's chosen mode (not light-dark(), which safari resolved
+// from the phone's setting), and the theme-color tag must follow the mode too
+test.describe('the browser bar colors follow the chosen mode, not the phone', () => {
+	test.use({ colorScheme: 'light' }); // phone in light mode
+
+	// Function to read the colors the browser chrome can sample
+	async function chromeColors(page: import('@playwright/test').Page) {
+		return page.evaluate(() => ({
+			html: getComputedStyle(document.documentElement).backgroundColor,
+			body: getComputedStyle(document.body).backgroundColor,
+			header: getComputedStyle(document.querySelector('#app-header')!).backgroundColor,
+			headerBlur: getComputedStyle(document.querySelector('#app-header')!).backdropFilter,
+			themeColor: document.querySelector('meta[name="theme-color"]')!.getAttribute('content')
+		}));
+	}
+
+	test('switching to dark on a light phone updates the page, header and theme-color', async ({
+		page
+	}) => {
+		await openDaily(page);
+		const light = await chromeColors(page);
+		expect(light.themeColor).toBe('#e3e3e3');
+		expect(light.header).toBe(light.html); // solid header, same color as the page
+		expect(light.body).toBe(light.html);
+		expect(light.headerBlur).toBe('none');
+
+		await openHeaderModal(page, 'settings');
+		await page.getByTestId('color-mode-switch').click();
+		await closeModal(page);
+
+		const dark = await chromeColors(page);
+		expect(dark.themeColor).toBe('#181410');
+		expect(dark.html).not.toBe(light.html);
+		expect(dark.header).toBe(dark.html);
+		expect(dark.body).toBe(dark.html);
+		// plain colors, so nothing is left for the browser to resolve from the phone's setting
+		for (const color of [dark.html, dark.header, light.html, light.header]) {
+			expect(color).not.toContain('light-dark');
+		}
+	});
+
+	test('a saved dark choice sets the theme-color before the page paints', async ({ page }) => {
+		await page.addInitScript(() => localStorage.setItem('modeUserPrefers', 'false'));
+		await page.goto('/');
+		expect(
+			await page.evaluate(() =>
+				document.querySelector('meta[name="theme-color"]')!.getAttribute('content')
+			)
+		).toBe('#181410');
+	});
+});

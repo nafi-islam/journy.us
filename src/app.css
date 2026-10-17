@@ -24,6 +24,18 @@
 	--typo-heading--letter-spacing: 0.01em;
 }
 
+/* explicit page colors for light and dark. safari on ios 26 tints the status bar from the page
+   and the sticky header background; it resolved skeleton's light-dark() colors from the phone's
+   setting instead of journy's chosen mode, so the strip behind the clock didn't match the page */
+html,
+body {
+	background-color: var(--color-surface-50);
+}
+html.dark,
+html.dark body {
+	background-color: var(--color-surface-950);
+}
+
 @layer base {
 	html,
 	body {

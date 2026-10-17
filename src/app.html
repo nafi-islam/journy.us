@@ -6,6 +6,9 @@
 		<link rel="icon" href="%sveltekit.assets%/map-icon.png" />
 		<link rel="apple-touch-icon" href="%sveltekit.assets%/apple-touch-icon.png" />
 
+		<!-- browser bar color (android chrome, older ios). kept in sync with the mode in theme.ts -->
+		<meta name="theme-color" content="#181410" />
+
 		<!-- apply the saved light / dark mode before the page paints (see src/lib/theme.ts) -->
 		<script>
 			(function () {
@@ -16,6 +19,9 @@
 							? saved
 							: window.matchMedia('(prefers-color-scheme: light)').matches;
 					document.documentElement.classList.toggle('dark', !light);
+					document
+						.querySelector('meta[name="theme-color"]')
+						.setAttribute('content', light ? '#e3e3e3' : '#181410');
 				} catch (e) {}
 			})();
 		</script>
