@@ -87,8 +87,10 @@ export async function readStorage(page: Page, key: string) {
 }
 
 // Function to flip the game mode switch in the settings modal (daily <-> practice)
+// (settings closes itself after a game mode change, so the new puzzle is visible)
 export async function toggleGameMode(page: Page) {
 	await openHeaderModal(page, 'settings');
 	await page.getByTestId('game-mode-switch').click();
-	await closeModal(page);
+	await expect(openBackdrop(page)).toHaveCount(0);
+	await expect(openDialog(page)).toHaveCount(0);
 }
